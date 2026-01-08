@@ -14,9 +14,13 @@ export class UsersRepository {
     return this.repo.findOne({ where: { id }, select: ['id', 'fullName', 'avatarUrl', 'email'] })
   }
 
-  findByEmail(email: string) {
-    return this.repo.findOne({ where: { email } })
+  async findByEmail(email: string) {
+    return this.repo.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'fullName', 'status'],
+    })
   }
+
 
   createUser(data: Partial<User>) {
     return this.repo.save(this.repo.create(data))
