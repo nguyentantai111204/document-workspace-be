@@ -10,12 +10,17 @@ import { AuthService } from './service/auth.service'
 import { AuthController } from './controller/auth.controller'
 
 import { StringValue } from 'ms'
+import { KeyTokenService } from './service/key-token.service'
+import { NotFoundError } from 'src/common/exceptions/not-found.exception'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { KeyToken } from './entities/key-token.entity'
 
 @Module({
     imports: [
         UsersModule,
         PassportModule,
         ConfigModule,
+        TypeOrmModule.forFeature([KeyToken]),
 
         JwtModule.registerAsync({
             inject: [ConfigService],
@@ -24,7 +29,7 @@ import { StringValue } from 'ms'
                 const expiresIn = config.get<string>('jwt.expiresIn') as StringValue
 
                 if (!secret || !expiresIn) {
-                    throw new Error('JWT config is missing')
+                    throw new NotFoundError('Không tìm thấy cấu hình JWT')
                 }
 
                 return {
@@ -36,7 +41,7 @@ import { StringValue } from 'ms'
             },
         }),
     ],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy, KeyTokenService],
     controllers: [AuthController],
 })
 export class AuthModule { }

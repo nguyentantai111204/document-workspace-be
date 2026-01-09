@@ -12,31 +12,36 @@ import { AppLogger } from '../logger/app-logger.service'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
     constructor(private readonly logger: AppLogger) { }
+
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp()
         const response = ctx.getResponse<Response>()
         const request = ctx.getRequest<Request>()
 
         let status = HttpStatus.INTERNAL_SERVER_ERROR
-        let body: any = {
-            message: 'Internal server error',
-            statusCode: status,
-        }
+        let message: string | string[] = 'Internal server error'
+        let errorCode = 'INTERNAL_ERROR'
 
         if (exception instanceof HttpException) {
             status = exception.getStatus()
-            const res = exception.getResponse()
-            body = typeof res === 'string' ? { message: res } : res
+            const res = exception.getResponse() as any
+
+            message = res?.message ?? exception.message
+            errorCode = res?.errorCode ?? exception.name
         }
 
+        // LOG SERVER
         this.logger.error(
-            `${request.method} ${request.url}`,
+            `[${status}] ${request.method} ${request.url}`,
             exception instanceof Error ? exception.stack : '',
             LOG_CONTEXT.EXCEPTION,
         )
 
         response.status(status).json({
-            ...body,
+            success: false,
+            statusCode: status,
+            message,
+            errorCode,
             path: request.url,
             timestamp: new Date().toISOString(),
         })

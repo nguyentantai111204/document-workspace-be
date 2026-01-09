@@ -4,8 +4,7 @@ import { NotFoundError } from "src/common/exceptions/not-found.exception"
 import { CreateUserDto } from "../dto/create-user.dto"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 
-import bcrypt from 'bcrypt';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
     constructor(private readonly usersRepo: UsersRepository) { }
