@@ -6,9 +6,10 @@ import { UsersModule } from "../users/user.module";
 import { APP_FILTER } from "@nestjs/core";
 import { HttpExceptionFilter } from "src/common/filters/http-exception.filter";
 import { LoggerModule } from "src/common/logger/logger.module";
+import { KeyTokenModule } from "../key-token/key-token.module";
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,],
+  imports: [AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule, KeyTokenModule],
   providers: [
     {
       provide: APP_FILTER,

@@ -21,6 +21,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         let status = HttpStatus.INTERNAL_SERVER_ERROR
         let message: string | string[] = 'Internal server error'
         let errorCode = 'INTERNAL_ERROR'
+        let meta = null
 
         if (exception instanceof HttpException) {
             status = exception.getStatus()
@@ -28,6 +29,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
             message = res?.message ?? exception.message
             errorCode = res?.errorCode ?? exception.name
+            meta = res?.metadata ?? null
         }
 
         // LOG SERVER
@@ -40,10 +42,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         response.status(status).json({
             success: false,
             statusCode: status,
-            message,
             errorCode,
+            message,
             path: request.url,
             timestamp: new Date().toISOString(),
+            meta,
         })
     }
 }
+

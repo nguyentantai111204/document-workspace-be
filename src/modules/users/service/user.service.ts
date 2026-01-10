@@ -1,49 +1,66 @@
 import { Injectable } from "@nestjs/common"
 import { UsersRepository } from "../repository/user.repository"
-import { NotFoundError } from "src/common/exceptions/not-found.exception"
 import { CreateUserDto } from "../dto/create-user.dto"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 
 import * as bcrypt from 'bcrypt';
+import { ChangePasswordDto } from "../dto/change-password.dto"
+import { KeyTokenService } from "src/modules/key-token/service/key-token.service"
 @Injectable()
 export class UsersService {
-    constructor(private readonly usersRepo: UsersRepository) { }
+    constructor(
+        private readonly usersRepo: UsersRepository,
+        private readonly keyTokenService: KeyTokenService,
+    ) { }
+
+    async findByEmailForAuth(email: string) {
+        return this.usersRepo.findByEmailWithPassword(email)
+    }
 
     async findById(id: string) {
         const user = await this.usersRepo.findById(id)
-
-        if (!user) {
-            throw new NotFoundError('Không tìm thấy người dùng')
-        }
-
+        if (!user) throw new BadRequestError('Không tìm thấy người dùng')
         return user
     }
 
-    async findByEmail(email: string) {
-        const user = await this.usersRepo.findByEmail(email);
-
-        if (!user) {
-            throw new NotFoundError('Không tìm thấy người dùng')
+    async create(dto: CreateUserDto) {
+        const exists = await this.usersRepo.findByEmail(dto.email)
+        if (exists) {
+            throw new BadRequestError('Email đã được sử dụng')
         }
 
-        return user
+        const passwordHash = await bcrypt.hash(dto.password, 10)
+
+        return this.usersRepo.createUser({
+            ...dto,
+            password: passwordHash,
+        })
     }
 
-    async create(createUserDto: CreateUserDto) {
-        const foundUser = await this.usersRepo.findByEmail(createUserDto.email)
+    async changePassword(userId: string, dto: ChangePasswordDto) {
+        const user = await this.usersRepo.findByIdWithPassword(userId)
+        if (!user) throw new BadRequestError('Không tìm thấy người dùng')
 
-        if (foundUser) {
-            throw new BadRequestError('Email này đã được sử dụng')
+        const isMatch = await bcrypt.compare(dto.currentPassword, user.password)
+        if (!isMatch) {
+            throw new BadRequestError('Mật khẩu cũ không đúng')
         }
 
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
+        if (dto.currentPassword === dto.newPassword) {
+            throw new BadRequestError('Mật khẩu mới không được trùng mật khẩu cũ')
+        }
 
-        const userData = {
-            ...createUserDto,
-            password: hashedPassword
-        };
+        if (dto.newPassword !== dto.confirmPassword) {
+            throw new BadRequestError('Mật khẩu xác nhận không khớp')
+        }
 
-        return await this.usersRepo.createUser(userData)
+        const newHash = await bcrypt.hash(dto.newPassword, 10)
+
+        await this.keyTokenService.revokeAll(userId)
+
+        return this.usersRepo.updatePassword(userId, newHash)
     }
 }
+
+
 

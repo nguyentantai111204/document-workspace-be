@@ -10,17 +10,19 @@ import { AuthService } from './service/auth.service'
 import { AuthController } from './controller/auth.controller'
 
 import { StringValue } from 'ms'
-import { KeyTokenService } from './service/key-token.service'
 import { NotFoundError } from 'src/common/exceptions/not-found.exception'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { KeyToken } from './entities/key-token.entity'
+import { ScheduleModule } from '@nestjs/schedule'
+import { KeyTokenService } from '../key-token/service/key-token.service'
+import { KeyTokenModule } from '../key-token/key-token.module'
 
 @Module({
     imports: [
         UsersModule,
         PassportModule,
         ConfigModule,
-        TypeOrmModule.forFeature([KeyToken]),
+        KeyTokenModule,
+        ScheduleModule.forRoot(),
 
         JwtModule.registerAsync({
             inject: [ConfigService],
@@ -41,7 +43,7 @@ import { KeyToken } from './entities/key-token.entity'
             },
         }),
     ],
-    providers: [AuthService, LocalStrategy, JwtStrategy, KeyTokenService],
+    providers: [AuthService, LocalStrategy, JwtStrategy],
     controllers: [AuthController],
 })
 export class AuthModule { }

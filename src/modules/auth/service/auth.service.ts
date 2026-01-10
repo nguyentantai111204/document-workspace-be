@@ -3,8 +3,9 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { UsersService } from 'src/modules/users/service/user.service'
 import { randomUUID } from 'crypto'
-import { KeyTokenService } from './key-token.service'
 import { calcRefreshTokenExpireTime } from 'src/common/utils/day-time.utils'
+import { KeyTokenService } from 'src/modules/key-token/service/key-token.service'
+import { RegisterDto } from '../dto/register.dto'
 
 @Injectable()
 export class AuthService {
@@ -14,18 +15,18 @@ export class AuthService {
     private readonly keyTokenService: KeyTokenService,
   ) { }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email)
+  async validateUser(email: string, rawPassword: string) {
+    const user = await this.usersService.findByEmailForAuth(email)
     if (!user) return null
 
-    const match = await bcrypt.compare(password, user.password)
+    const match = await bcrypt.compare(rawPassword, user.password)
     if (!match) return null
 
-    const { password: _, ...safeUser } = user
+    const { password, ...safeUser } = user
     return safeUser
   }
 
-  async login(user: any, deviceId?: string) {
+  private async issueTokens(user: any, deviceId?: string) {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -33,21 +34,37 @@ export class AuthService {
     }
 
     const accessToken = this.jwtService.sign(payload)
-
     const refreshToken = randomUUID()
-
-    const expiresAt = calcRefreshTokenExpireTime();
 
     await this.keyTokenService.create({
       user,
       refreshToken,
       deviceId,
-      expiresAt,
+      expiresAt: calcRefreshTokenExpireTime(),
     })
 
+    return { accessToken, refreshToken }
+  }
+
+  async register(dto: RegisterDto) {
+    const user = await this.usersService.create(dto)
+    const tokens = await this.issueTokens(user, 'register')
+
     return {
-      accessToken,
-      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+      },
+      ...tokens,
+    }
+  }
+
+  async login(user: any, deviceId?: string) {
+    const tokens = await this.issueTokens(user, deviceId)
+
+    return {
+      ...tokens,
       user: {
         id: user.id,
         email: user.email,
@@ -57,22 +74,20 @@ export class AuthService {
     }
   }
 
-  async refresh(userId: string, refreshToken: string) {
+  async refresh(userId: string, refreshToken: string, deviceId?: string) {
     const keyToken = await this.keyTokenService.findAndVerify(
       refreshToken,
       userId,
     )
 
     if (!keyToken) {
-      // reuse detected
       await this.keyTokenService.revokeAll(userId)
-      throw new UnauthorizedException('Phát hiện lỗi refresh token!!!')
+      throw new UnauthorizedException('Refresh token không hợp lệ')
     }
+
     await this.keyTokenService.revoke(keyToken)
 
-    const user = keyToken.user
-
-    return this.login(user)
+    return this.issueTokens(keyToken.user, deviceId)
   }
 
   async logout(userId: string, refreshToken: string) {
@@ -81,17 +96,14 @@ export class AuthService {
       userId,
     )
 
-    if (keyToken) {
-      await this.keyTokenService.revoke(keyToken)
-    }
-
+    if (keyToken) await this.keyTokenService.revoke(keyToken)
     return { success: true }
   }
-
 
   async logoutAll(userId: string) {
     await this.keyTokenService.revokeAll(userId)
     return { success: true }
   }
 }
+
 

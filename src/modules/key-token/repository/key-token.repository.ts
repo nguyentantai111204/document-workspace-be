@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { KeyToken } from "../entities/key-token.entity";
 import { Repository } from "typeorm";
+import { KeyToken } from "../entities/key-token.entity";
 
 @Injectable()
 export class KeyTokenRepository {
