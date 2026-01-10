@@ -11,14 +11,14 @@ import { AuthController } from './controller/auth.controller'
 
 import { StringValue } from 'ms'
 import { NotFoundError } from 'src/common/exceptions/not-found.exception'
-import { TypeOrmModule } from '@nestjs/typeorm'
 import { ScheduleModule } from '@nestjs/schedule'
-import { KeyTokenService } from '../key-token/service/key-token.service'
 import { KeyTokenModule } from '../key-token/key-token.module'
+import { PermissionModule } from '../permission/permission.module'
 
 @Module({
     imports: [
         UsersModule,
+        PermissionModule,
         PassportModule,
         ConfigModule,
         KeyTokenModule,

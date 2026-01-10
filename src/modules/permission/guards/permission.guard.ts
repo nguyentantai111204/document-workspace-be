@@ -29,14 +29,12 @@ export class PermissionGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const user = request.user
 
-        if (!user?.userId && !user?.id) {
-            throw new ForbiddenException('User not authenticated')
+        if (!user?.id) {
+            throw new ForbiddenException('Người dùng chưa xác thực')
         }
 
-        const userId = user.userId ?? user.id
-
         const userPermissions =
-            await this.permissionService.getPermissionsByUser(userId)
+            await this.permissionService.getPermissionsByUser(user.id)
 
         const hasPermission = requiredPermissions.every(p =>
             userPermissions.includes(p),

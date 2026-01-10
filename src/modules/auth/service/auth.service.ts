@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import { calcRefreshTokenExpireTime } from 'src/common/utils/day-time.utils'
 import { KeyTokenService } from 'src/modules/key-token/service/key-token.service'
 import { RegisterDto } from '../dto/register.dto'
+import { PermissionService } from 'src/modules/permission/services/permission.service'
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly keyTokenService: KeyTokenService,
+    private readonly permissionService: PermissionService
   ) { }
 
   async validateUser(email: string, rawPassword: string) {
@@ -48,6 +50,9 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const user = await this.usersService.create(dto)
+
+    await this.permissionService.assignDefaultRole(user.id)
+
     const tokens = await this.issueTokens(user, 'register')
 
     return {
@@ -59,6 +64,7 @@ export class AuthService {
       ...tokens,
     }
   }
+
 
   async login(user: any, deviceId?: string) {
     const tokens = await this.issueTokens(user, deviceId)

@@ -5,6 +5,8 @@ import { Permission } from './entities/permission.entity'
 import { UserRole } from './entities/user-role.entity'
 import { RolePermission } from './entities/role-permission.entity'
 import { PermissionService } from './services/permission.service'
+import { RoleRepository } from './repository/role.repository'
+import { UserRoleRepository } from './repository/user-role.repository'
 
 @Module({
     imports: [
@@ -15,7 +17,7 @@ import { PermissionService } from './services/permission.service'
             RolePermission,
         ]),
     ],
-    providers: [PermissionService],
+    providers: [PermissionService, RoleRepository, UserRoleRepository],
     exports: [PermissionService],
 })
 export class PermissionModule { }

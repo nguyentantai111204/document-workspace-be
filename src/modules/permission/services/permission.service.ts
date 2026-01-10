@@ -1,39 +1,34 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { UserRole } from '../entities/user-role.entity'
-import { RolePermission } from '../entities/role-permission.entity'
+import { RoleRepository } from '../repository/role.repository'
+import { UserRoleRepository } from '../repository/user-role.repository'
 
 @Injectable()
 export class PermissionService {
     constructor(
-        @InjectRepository(UserRole)
-        private readonly userRoleRepo: Repository<UserRole>,
-
-        @InjectRepository(RolePermission)
-        private readonly rolePermissionRepo: Repository<RolePermission>,
+        private readonly roleRepo: RoleRepository,
+        private readonly userRoleRepo: UserRoleRepository,
     ) { }
 
     async getPermissionsByUser(userId: string): Promise<string[]> {
-        const userRoles = await this.userRoleRepo.find({
-            where: { user: { id: userId } },
-            relations: {
-                role: {
-                    rolePermissions: {
-                        permission: true,
-                    },
-                },
-            },
-        })
+        const userRoles =
+            await this.userRoleRepo.findByUserIdWithPermissions(userId)
 
         const permissions = new Set<string>()
 
-        userRoles.forEach(ur => {
-            ur.role.rolePermissions.forEach(rp => {
+        for (const ur of userRoles) {
+            for (const rp of ur.role.rolePermissions) {
                 permissions.add(rp.permission.code)
-            })
-        })
+            }
+        }
 
         return [...permissions]
     }
+
+    async assignDefaultRole(userId: string) {
+        const role = await this.roleRepo.findByCode('USER')
+        if (!role) throw new Error('Default role USER not found')
+
+        await this.userRoleRepo.assignRole(userId, role.id)
+    }
 }
+
