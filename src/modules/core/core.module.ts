@@ -7,9 +7,11 @@ import { APP_FILTER } from "@nestjs/core";
 import { HttpExceptionFilter } from "src/common/filters/http-exception.filter";
 import { LoggerModule } from "src/common/logger/logger.module";
 import { KeyTokenModule } from "../key-token/key-token.module";
+import { PermissionModule } from "../permission/permission.module";
+import { SeedModule } from "./seeds/seed.module";
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule, KeyTokenModule],
+  imports: [AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule, KeyTokenModule, PermissionModule, SeedModule],
   providers: [
     {
       provide: APP_FILTER,
