@@ -1,55 +1,71 @@
-import { Controller, Post, UseGuards, Body, Request, HttpCode, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport'
-import { AuthService } from '../service/auth.service'
-import { JwtAuthGuard } from '../guards/jwt-auth.guard'
-import { LogoutDto } from '../dto/logout.dto'
-import { RefreshTokenGuard } from '../guards/refresh-token.guard'
-import { RegisterDto } from '../dto/register.dto'
+import {
+    Controller, Post, UseGuards, Body, Request, HttpCode, HttpStatus, UsePipes, ValidationPipe
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { AuthService } from '../service/auth.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { LogoutDto } from '../dto/logout.dto';
+import { RefreshTokenGuard } from '../guards/refresh-token.guard';
+import { RegisterDto } from '../dto/register.dto';
 
-
-@Controller('auth')
+@ApiTags('Auth') // Nhóm API trong Swagger
 @UsePipes(new ValidationPipe({ transform: true })) // Thêm validation pipe
+@Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('register')
     @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({ summary: 'Đăng ký người dùng mới' })
+    @ApiResponse({ status: 201, description: 'Người dùng được tạo thành công' })
+    @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+    @ApiBody({ type: RegisterDto })
     register(@Body() dto: RegisterDto) {
-        return this.authService.register(dto)
+        return this.authService.register(dto);
     }
 
     @UseGuards(AuthGuard('local'))
     @Post('login')
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Đăng nhập' })
+    @ApiResponse({ status: 200, description: 'Đăng nhập thành công' })
+    @ApiResponse({ status: 401, description: 'Email hoặc mật khẩu không đúng' })
     login(@Request() req) {
-        return this.authService.login(req.user)
+        return this.authService.login(req.user);
     }
 
     @Post('refresh')
     @UseGuards(RefreshTokenGuard)
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Làm mới access token' })
+    @ApiResponse({ status: 200, description: 'Lấy token mới thành công' })
     refresh(@Request() req) {
         return this.authService.refresh(
             req.userId,
             req.refreshToken,
             req.deviceId,
-        )
+        );
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(HttpStatus.OK)
-    logout(
-        @Request() req,
-        @Body() dto: LogoutDto
-    ) {
-        return this.authService.logout(req.user.userId, dto.refreshToken)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Đăng xuất khỏi thiết bị hiện tại' })
+    @ApiResponse({ status: 200, description: 'Đăng xuất thành công' })
+    @ApiBody({ type: LogoutDto })
+    logout(@Request() req, @Body() dto: LogoutDto) {
+        return this.authService.logout(req.user.userId, dto.refreshToken);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('logout-all')
     @HttpCode(HttpStatus.OK)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Đăng xuất khỏi tất cả thiết bị' })
+    @ApiResponse({ status: 200, description: 'Đăng xuất tất cả thành công' })
     logoutAll(@Request() req) {
-        return this.authService.logoutAll(req.user.userId)
+        return this.authService.logoutAll(req.user.userId);
     }
 }

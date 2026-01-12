@@ -5,6 +5,7 @@ import { WorkspaceMember } from "./entities/workspace-member.entity";
 import { WorkspaceService } from "./services/workspace.service";
 import { WorkspaceMemberService } from "./services/workspace-member.service";
 import { WorkspaceController } from "./controller/workspace.controller";
+import { WorkspaceGuard } from "src/common/guards/workspace.guard";
 
 @Module({
     imports: [
@@ -14,8 +15,9 @@ import { WorkspaceController } from "./controller/workspace.controller";
     providers: [
         WorkspaceService,
         WorkspaceMemberService,
+        WorkspaceGuard
     ],
-    exports: [WorkspaceMemberService],
+    exports: [WorkspaceMemberService, WorkspaceGuard, TypeOrmModule],
 })
 export class WorkspaceModule { }
 

@@ -58,7 +58,7 @@ export class WorkspaceService {
             .innerJoin(
                 'workspace_members',
                 'wm',
-                'wm.workspaceId = w.id AND wm.userId = :userId',
+                'wm."workspaceId"::uuid = w.id AND wm."userId"::uuid = :userId::uuid',
                 { userId },
             )
             .where('w.deletedAt IS NULL')

@@ -6,9 +6,11 @@ import { FileStorageService } from "./services/file-storage.service";
 import { CloudinaryStorageService } from "./services/cloudinary-storage.service";
 import { FileService } from "./services/file.service";
 import { FileController } from "./controller/file.controller";
+import { FileValidationService } from "./services/file-validation.service";
+import { WorkspaceModule } from "../workspaces/workspace.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([FileEntity])],
+    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule],
     providers: [
         CloudinaryProvider,
         {
@@ -16,6 +18,7 @@ import { FileController } from "./controller/file.controller";
             useClass: CloudinaryStorageService,
         },
         FileService,
+        FileValidationService,
     ],
     controllers: [FileController],
 })

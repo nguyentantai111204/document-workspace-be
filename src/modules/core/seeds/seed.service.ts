@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common'
 import { RoleSeed } from './role.seed'
 import { PermissionSeed } from './permission.seed'
 import { RolePermissionSeed } from './role-permission.seed'
+import { UserSeed } from './user.seed'
 
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -9,6 +10,7 @@ export class SeedService implements OnModuleInit {
         private readonly roleSeed: RoleSeed,
         private readonly permissionSeed: PermissionSeed,
         private readonly rolePermissionSeed: RolePermissionSeed,
+        private readonly userSeed: UserSeed
     ) { }
 
     async onModuleInit() {
@@ -17,5 +19,6 @@ export class SeedService implements OnModuleInit {
         await this.roleSeed.run()
         await this.permissionSeed.run()
         await this.rolePermissionSeed.run()
+        await this.userSeed.run()
     }
 }

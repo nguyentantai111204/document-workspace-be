@@ -10,11 +10,12 @@ import { KeyTokenModule } from "../key-token/key-token.module";
 import { PermissionModule } from "../permission/permission.module";
 import { SeedModule } from "./seeds/seed.module";
 import { WorkspaceModule } from "../workspaces/workspace.module";
+import { FileModule } from "../files/file.module";
 
 @Module({
   imports: [
     AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,
-    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule],
+    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule],
   providers: [
     {
       provide: APP_FILTER,

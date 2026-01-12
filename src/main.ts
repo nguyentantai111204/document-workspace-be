@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
 import { ResponseInterceptor } from './common/interceptors/response.interceptor'
+import { setupSwagger } from './swagger'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -22,7 +23,7 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ResponseInterceptor()) // chuẩn hóa response
 
-
+  setupSwagger(app); // swagger
   const port = process.env.PORT ?? 3000
   await app.listen(port)
 

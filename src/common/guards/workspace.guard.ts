@@ -3,12 +3,16 @@ import { InjectRepository } from "@nestjs/typeorm"
 import { WorkspaceMember } from "src/modules/workspaces/entities/workspace-member.entity"
 import { Repository } from "typeorm"
 import { ForbiddenError } from "../exceptions/forbiden.exception"
+import { Workspace } from "src/modules/workspaces/entities/workspace.entity"
+import { NotFoundError } from "../exceptions/not-found.exception"
 
 @Injectable()
 export class WorkspaceGuard implements CanActivate {
     constructor(
         @InjectRepository(WorkspaceMember)
         private readonly memberRepo: Repository<WorkspaceMember>,
+        @InjectRepository(Workspace)
+        private readonly workspaceRepo: Repository<Workspace>,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -17,6 +21,16 @@ export class WorkspaceGuard implements CanActivate {
         const workspaceId = req.params.workspaceId
 
         if (!workspaceId) return true
+
+        const workspace = await this.workspaceRepo.findOne({
+            where: {
+                id: workspaceId
+            },
+        })
+
+        if (!workspace) {
+            throw new NotFoundError('Workspace không tồn tại')
+        }
 
         const member = await this.memberRepo.findOne({
             where: { workspaceId, userId: user.id },
