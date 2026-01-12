@@ -9,9 +9,12 @@ import { LoggerModule } from "src/common/logger/logger.module";
 import { KeyTokenModule } from "../key-token/key-token.module";
 import { PermissionModule } from "../permission/permission.module";
 import { SeedModule } from "./seeds/seed.module";
+import { WorkspaceModule } from "../workspaces/workspace.module";
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule, KeyTokenModule, PermissionModule, SeedModule],
+  imports: [
+    AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,
+    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule],
   providers: [
     {
       provide: APP_FILTER,
