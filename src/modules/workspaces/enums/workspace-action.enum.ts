@@ -4,5 +4,7 @@ export enum WorkspaceAction {
     UPDATE_WORKSPACE = 'workspace.update',
     DELETE_WORKSPACE = 'workspace.delete',
     UPLOAD_FILE = 'file.upload',
+    READ_FILE = 'file.read',
+    DELETE_FILE = 'file.delete',
     CHAT = 'chat.send',
 }

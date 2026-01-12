@@ -20,6 +20,6 @@ export class WorkspacePolicyGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const role = request.workspaceRole
 
-        return WorkspacePolicy[role]?.includes(action)
+        return !!WorkspacePolicy[role]?.includes(action)
     }
 }
