@@ -1,4 +1,4 @@
-export interface PaginatedResult<T> {
+export interface PaginatedResponse<T> {
     items: T[]
     meta: {
         page: number

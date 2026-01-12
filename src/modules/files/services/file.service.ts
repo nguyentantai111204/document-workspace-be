@@ -6,9 +6,9 @@ import { FileStorageService } from "./file-storage.service"
 import { FileStatus } from "../enums/file-status.enum"
 import { FileValidationService } from "./file-validation.service"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
+import { FileQueryDto } from "../dto/file-query.dto"
 import { buildPaginationMeta } from "src/common/utils/pagination.utils"
-import { PaginatedResult } from "src/common/interfaces/paginated-result.interface"
-import { PaginationDto } from "src/common/dto/pagination.interface"
+import { FileSortField } from "../enums/file-sort-field.enum"
 
 @Injectable()
 export class FileService {
@@ -47,29 +47,50 @@ export class FileService {
 
     async listByWorkspace(
         workspaceId: string,
-        pagination: PaginationDto,
-    ): Promise<PaginatedResult<FileEntity>> {
-        const page = pagination.page ?? 1
-        const limit = pagination.limit ?? 20
+        query: FileQueryDto,
+    ) {
+        const {
+            page = 1,
+            limit = 20,
+            keyword,
+            mimeType,
+            ownerId,
+            sortBy = FileSortField.CREATED_AT,
+            sortOrder = 'DESC',
+        } = query
+
         const skip = (page - 1) * limit
 
-        const [items, total] = await this.fileRepo.findAndCount({
-            where: {
-                workspaceId,
-                status: FileStatus.ACTIVE,
-            },
-            order: {
-                createdAt: 'DESC',
-            },
-            take: limit,
-            skip,
-        })
+        const qb = this.fileRepo.createQueryBuilder('file')
+
+        qb.where('file.workspaceId = :workspaceId', { workspaceId })
+            .andWhere('file.status = :status', { status: FileStatus.ACTIVE })
+
+        if (mimeType) {
+            qb.andWhere('file.mimeType = :mimeType', { mimeType })
+        }
+
+        if (ownerId) {
+            qb.andWhere('file.ownerId = :ownerId', { ownerId })
+        }
+
+        if (keyword) {
+            qb.andWhere('file.name ILIKE :keyword', {
+                keyword: `%${keyword}%`,
+            })
+        }
+
+        qb.orderBy(`file.${sortBy}`, sortOrder)
+        qb.skip(skip).take(limit)
+
+        const [items, total] = await qb.getManyAndCount()
 
         return {
             items,
             meta: buildPaginationMeta(page, limit, total),
         }
     }
+
 
     async deleteFile(params: {
         fileId: string

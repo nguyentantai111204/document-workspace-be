@@ -13,7 +13,8 @@ import { FileActionGuard } from "src/common/guards/file-action.guard";
 import { FileActionPermission } from "src/common/decorators/file-action.decorator";
 import { FileAction } from "../enums/file-action.enum";
 import { FileOwnershipGuard } from "src/common/guards/file-ownership.guard";
-import { PaginationDto } from "src/common/dto/pagination.interface";
+import { PaginationDto } from "src/common/dto/pagination.dto";
+import { FileQueryDto } from "../dto/file-query.dto";
 
 @Controller('workspaces/:workspaceId/files')
 @UseGuards(AuthGuard('jwt'), WorkspaceGuard, WorkspacePolicyGuard)
@@ -47,11 +48,10 @@ export class FileController {
     @Get()
     listFiles(
         @Param('workspaceId') workspaceId: string,
-        @Query() pagination: PaginationDto,
+        @Query() query: FileQueryDto,
     ) {
-        return this.fileService.listByWorkspace(workspaceId, pagination)
+        return this.fileService.listByWorkspace(workspaceId, query)
     }
-
 
     // delete
     @Delete(':fileId')
