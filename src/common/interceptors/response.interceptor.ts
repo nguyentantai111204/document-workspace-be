@@ -11,11 +11,10 @@ export class ResponseInterceptor implements NestInterceptor {
     intercept(_: ExecutionContext, next: CallHandler) {
         return next.handle().pipe(
             map((data) => {
-                // pagination
-                if (data?.items && data?.meta) {
+                if (data && typeof data === 'object' && 'items' in data && 'meta' in data) {
                     return {
                         success: true,
-                        data: data.items,
+                        data: data.items || [],
                         meta: data.meta,
                         message: 'Success',
                     }
@@ -23,7 +22,7 @@ export class ResponseInterceptor implements NestInterceptor {
 
                 return {
                     success: true,
-                    data,
+                    data: data || null,
                     meta: null,
                     message: 'Success',
                 }

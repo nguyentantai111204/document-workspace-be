@@ -52,7 +52,7 @@ export class FileService {
         const {
             page = 1,
             limit = 20,
-            keyword,
+            search,
             mimeType,
             ownerId,
             sortBy = FileSortField.CREATED_AT,
@@ -74,9 +74,9 @@ export class FileService {
             qb.andWhere('file.ownerId = :ownerId', { ownerId })
         }
 
-        if (keyword) {
-            qb.andWhere('file.name ILIKE :keyword', {
-                keyword: `%${keyword}%`,
+        if (search) {
+            qb.andWhere('file.name ILIKE :search', {
+                search: `%${search}%`,
             })
         }
 

@@ -13,5 +13,5 @@ export class FileQueryDto extends QueryDto<FileSortField> {
 
     @IsOptional()
     @IsString()
-    keyword?: string
+    search?: string
 }

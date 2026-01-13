@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { LogoutDto } from '../dto/logout.dto';
 import { RefreshTokenGuard } from '../guards/refresh-token.guard';
 import { RegisterDto } from '../dto/register.dto';
+import { LoginDto } from '../dto/login.dto';
 
 @ApiTags('Auth') // Nhóm API trong Swagger
 @UsePipes(new ValidationPipe({ transform: true })) // Thêm validation pipe
@@ -31,6 +32,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Đăng nhập' })
     @ApiResponse({ status: 200, description: 'Đăng nhập thành công' })
     @ApiResponse({ status: 401, description: 'Email hoặc mật khẩu không đúng' })
+    @ApiBody({ type: LoginDto })
     login(@Request() req) {
         return this.authService.login(req.user);
     }

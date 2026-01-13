@@ -10,6 +10,7 @@ import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { WorkspaceQueryDto } from "../dto/workspace-filter.dto"
 import { buildPaginationMeta } from "src/common/utils/pagination.utils"
 import { WorkspaceSortField } from "../enums/workspace-sort-field.enum"
+import { SortOrder } from "src/common/enums/sort.enum"
 
 @Injectable()
 export class WorkspaceService {
@@ -46,39 +47,41 @@ export class WorkspaceService {
         const {
             page = 1,
             limit = 20,
-            keyword,
+            search,
             sortBy = WorkspaceSortField.CREATED_AT,
-            sortOrder = 'DESC',
-        } = query
+            sortOrder = SortOrder.DESC,
+        } = query;
 
-        const skip = (page - 1) * limit
+        const skip = (page - 1) * limit;
 
         const qb = this.workspaceRepo
             .createQueryBuilder('w')
             .innerJoin(
                 'workspace_members',
                 'wm',
-                'wm."workspaceId"::uuid = w.id AND wm."userId"::uuid = :userId::uuid',
+                'wm.workspace_id = w.id AND wm.user_id = :userId',
                 { userId },
             )
-            .where('w.deletedAt IS NULL')
+            .where('w.deletedAt IS NULL');
 
-        if (keyword) {
-            qb.andWhere('w.name ILIKE :keyword', {
-                keyword: `%${keyword}%`,
-            })
+        if (search) {
+            qb.andWhere('w.name ILIKE :search', {
+                search: `%${search}%`,
+            });
         }
 
         qb.orderBy(`w.${sortBy}`, sortOrder)
-        qb.skip(skip).take(limit)
+            .skip(skip)
+            .take(limit);
 
-        const [items, total] = await qb.getManyAndCount()
+        const [items, total] = await qb.getManyAndCount();
 
         return {
             items,
             meta: buildPaginationMeta(page, limit, total),
-        }
+        };
     }
+
 
 
     async getWorkspaceDetail(workspaceId: string, userId: string) {

@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { WorkspaceMember } from "../entities/workspace-member.entity"
-import { DataSource, Repository } from "typeorm"
+import { Repository } from "typeorm"
 import { WorkspaceRole } from "../enums/workspace-role.enum"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
-import { User } from "src/modules/users/entities/user.entity"
 import { ListMembersQueryDto } from "../dto/workspace-member-filter.dto"
 import { PaginatedResponse } from "src/common/interfaces/paginated-result.interface"
 import { buildPaginationMeta } from "src/common/utils/pagination.utils"
@@ -14,7 +13,6 @@ export class WorkspaceMemberService {
     constructor(
         @InjectRepository(WorkspaceMember)
         private readonly memberRepo: Repository<WorkspaceMember>,
-        private readonly dataSource: DataSource,
     ) { }
 
     async addMember(
@@ -61,44 +59,51 @@ export class WorkspaceMemberService {
         workspaceId: string,
         query: ListMembersQueryDto,
     ): Promise<PaginatedResponse<any>> {
-        const { page = 1, limit = 20, keyword, role } = query;
-        const skip = (page - 1) * limit;
+        const { page = 1, limit = 20, search, role } = query;
 
-        const qb = this.dataSource
-            .getRepository(WorkspaceMember)
-            .createQueryBuilder('wm')
-            .innerJoin(User, 'u', 'u.id = wm.userId')
-            .where('wm.workspaceId = :workspaceId', { workspaceId });
-
-        if (keyword) {
-            qb.andWhere('(u.full_name ILIKE :keyword OR u.email ILIKE :keyword)', {
-                keyword: `%${keyword}%`,
-            });
-        }
+        const qb = this.memberRepo
+            .createQueryBuilder('member')
+            .innerJoin('member.user', 'user')
+            .where('member.workspaceId = :workspaceId', { workspaceId });
 
         if (role) {
-            qb.andWhere('wm.role = :role', { role });
+            qb.andWhere('member.role = :role', { role });
         }
 
+        if (search) {
+            qb.andWhere(
+                '(user.fullName ILIKE :search OR user.email ILIKE :search)',
+                { search: `%${search}%` },
+            );
+        }
+
+        qb.skip((page - 1) * limit).take(limit);
+
         qb.select([
-            'u.id AS id',
-            'u.full_name AS "fullName"',
-            'u.email AS email',
-            'u.avatar_url AS "avatarUrl"',
-            'wm.role AS role',
+            'member.id',
+            'member.role',
+            'user.id',
+            'user.fullName',
+            'user.email',
+            'user.avatarUrl',
         ]);
 
-        qb.skip(skip).take(limit);
+        const [items, total] = await qb.getManyAndCount();
 
-        const [items, total] = await Promise.all([
-            qb.getRawMany(),
-            qb.getCount(),
-        ]);
+        const result = items.map((m) => ({
+            userId: m.user.id,
+            fullName: m.user.fullName,
+            email: m.user.email,
+            avatarUrl: m.user.avatarUrl,
+            role: m.role,
+        }));
+
 
         return {
-            items,
+            items: result,
             meta: buildPaginationMeta(page, limit, total),
         };
     }
+
 
 }
