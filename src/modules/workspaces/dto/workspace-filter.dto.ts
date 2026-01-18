@@ -1,5 +1,5 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator'
-import { QueryDto } from 'src/common/dto/query.dto'
+import { QueryDto } from 'src/common/dtos/query.dto'
 import { WorkspaceSortField } from '../enums/workspace-sort-field.enum'
 import { SortOrder } from 'src/common/enums/sort.enum'
 

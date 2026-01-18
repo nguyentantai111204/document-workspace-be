@@ -19,6 +19,12 @@ export class WorkspaceMember extends BaseEntity {
     })
     role: WorkspaceRole
 
+    @Column({ default: 'active' })
+    status: 'active' | 'invited' | 'removed'
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', name: 'joined_at', })
+    joinedAt: Date
+
     @ManyToOne(() => Workspace, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'workspace_id' })
     workspace: Workspace

@@ -15,7 +15,7 @@ import { FileActionGuard } from "src/common/guards/file-action.guard";
 import { FileActionPermission } from "src/common/decorators/file-action.decorator";
 import { FileAction } from "../enums/file-action.enum";
 import { FileOwnershipGuard } from "src/common/guards/file-ownership.guard";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { PaginationDto } from "src/common/dtos/pagination.dto";
 import { FileQueryDto } from "../dto/file-query.dto";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 

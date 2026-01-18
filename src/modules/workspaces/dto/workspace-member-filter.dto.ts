@@ -1,5 +1,5 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { WorkspaceRole } from '../enums/workspace-role.enum';
 
 export class ListMembersQueryDto extends PaginationDto {

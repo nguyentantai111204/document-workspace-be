@@ -101,6 +101,39 @@ export class WorkspaceService {
         }
     }
 
+    async transferOwnership(
+        workspaceId: string,
+        currentOwnerId: string,
+        newOwnerId: string,
+    ) {
+        if (currentOwnerId === newOwnerId) {
+            throw new BadRequestError('Không thể chuyển quyền cho chính mình')
+        }
+
+        const members = await this.memberService['memberRepo'].find({
+            where: { workspaceId },
+        })
+
+        if (members.length < 2) {
+            throw new BadRequestError('Workspace phải có ít nhất 2 thành viên')
+        }
+
+        const currentOwner = members.find(
+            (m) => m.userId === currentOwnerId && m.role === WorkspaceRole.OWNER,
+        )
+
+        const newOwner = members.find((m) => m.userId === newOwnerId)
+
+        if (!currentOwner || !newOwner) {
+            throw new BadRequestError('Member không hợp lệ')
+        }
+
+        currentOwner.role = WorkspaceRole.ADMIN
+        newOwner.role = WorkspaceRole.OWNER
+
+        await this.memberService['memberRepo'].save([currentOwner, newOwner])
+    }
+
 
 }
 

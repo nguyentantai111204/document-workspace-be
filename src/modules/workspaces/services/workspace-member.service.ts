@@ -105,5 +105,34 @@ export class WorkspaceMemberService {
         };
     }
 
+    async updateMemberRole(
+        workspaceId: string,
+        actorId: string,
+        targetUserId: string,
+        newRole: WorkspaceRole
+    ) {
+        const actor = await this.memberRepo.findOne({ where: { workspaceId, userId: actorId } })
+
+        const targetUser = await this.memberRepo.findOne({ where: { workspaceId, userId: targetUserId } })
+
+        if (!actor || !targetUser) {
+            throw new BadRequestError('Thành viên không tồn tại')
+        }
+
+        if (actorId === targetUserId) {
+            throw new BadRequestError('Không thể thự thay đổi role chính mình')
+        }
+
+        if (actor.role === WorkspaceRole.ADMIN && targetUser.role === WorkspaceRole.OWNER) {
+            throw new BadRequestError('ADMIN không có quyền thao tác với OWNER')
+        }
+
+        if (targetUser.role === WorkspaceRole.OWNER) {
+            throw new BadRequestError('Phải transfer ownership để đổi OWNER')
+        }
+
+        targetUser.role = newRole
+        return this.memberRepo.save(targetUser)
+    }
 
 }
