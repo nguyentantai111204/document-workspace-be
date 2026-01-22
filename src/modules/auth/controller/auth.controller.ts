@@ -9,6 +9,7 @@ import { LogoutDto } from '../dto/logout.dto';
 import { RefreshTokenGuard } from '../guards/refresh-token.guard';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
+import { BypassResponseFormat } from 'src/common/interceptors/bypass-response-format.interceptor';
 
 @ApiTags('Auth') // Nhóm API trong Swagger
 @UsePipes(new ValidationPipe({ transform: true })) // Thêm validation pipe
@@ -28,6 +29,7 @@ export class AuthController {
 
     @UseGuards(AuthGuard('local'))
     @Post('login')
+    @BypassResponseFormat()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Đăng nhập' })
     @ApiResponse({ status: 200, description: 'Đăng nhập thành công' })
@@ -38,6 +40,7 @@ export class AuthController {
     }
 
     @Post('refresh')
+    @BypassResponseFormat()
     @UseGuards(RefreshTokenGuard)
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Làm mới access token' })
@@ -52,6 +55,7 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('logout')
+    @BypassResponseFormat()
     @HttpCode(HttpStatus.OK)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Đăng xuất khỏi thiết bị hiện tại' })
@@ -63,6 +67,7 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('logout-all')
+    @BypassResponseFormat()
     @HttpCode(HttpStatus.OK)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Đăng xuất khỏi tất cả thiết bị' })

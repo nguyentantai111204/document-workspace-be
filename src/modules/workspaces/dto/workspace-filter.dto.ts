@@ -14,5 +14,5 @@ export class WorkspaceQueryDto extends QueryDto<WorkspaceSortField> {
 
     @IsOptional()
     @IsEnum(SortOrder)
-    sortOrder: 'ASC' | 'DESC' = 'DESC'
+    sortOrder: SortOrder = SortOrder.DESC
 }

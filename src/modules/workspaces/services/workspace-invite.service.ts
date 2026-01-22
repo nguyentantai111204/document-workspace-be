@@ -5,24 +5,23 @@ import { randomUUID } from 'crypto'
 import dayjs from 'dayjs'
 
 import { WorkspaceInvite } from '../entities/workspace-invite.entity'
-import { WorkspaceMember } from '../entities/workspace-member.entity'
 import { WorkspaceRole } from '../enums/workspace-role.enum'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 import { NotFoundError } from 'src/common/exceptions/not-found.exception'
 import { MailService } from 'src/common/services/mail/mail.service'
-import { ConfigService } from '@nestjs/config'
+import { User } from 'src/modules/users/entities/user.entity'
+import { WorkspaceInviteStatus } from '../enums/workspace-invite-status.enum'
+import { WorkspaceInviteRepository } from '../repositories/workspace-invite.repository'
+import { WorkspaceMemberRepository } from '../repositories/workspace-memeber.repository'
+import { UsersRepository } from 'src/modules/users/repository/user.repository'
 
 @Injectable()
 export class WorkspaceInviteService {
     constructor(
-        @InjectRepository(WorkspaceInvite)
-        private readonly inviteRepo: Repository<WorkspaceInvite>,
-
-        @InjectRepository(WorkspaceMember)
-        private readonly memberRepo: Repository<WorkspaceMember>,
-
+        private readonly inviteRepo: WorkspaceInviteRepository,
+        private readonly memberRepo: WorkspaceMemberRepository,
+        private readonly userRepo: UsersRepository,
         private readonly mailService: MailService,
-        private readonly config: ConfigService,
     ) { }
 
     async invite(
@@ -31,96 +30,96 @@ export class WorkspaceInviteService {
         email: string,
         role: WorkspaceRole,
     ) {
-        const existedInvite = await this.inviteRepo.findOne({
-            where: { workspaceId, email, status: 'pending' },
-        })
+        const user = await this.userRepo.findByEmail(email)
 
-        if (existedInvite) {
-            throw new BadRequestError('Invite đã tồn tại')
+        if (user) {
+            const existed = await this.memberRepo.findByWorkspaceAndUser(
+                workspaceId,
+                user.id,
+            )
+            if (existed) {
+                throw new BadRequestError(
+                    'User đã là thành viên workspace',
+                )
+            }
         }
 
-        const token = randomUUID()
-
-        const invite = this.inviteRepo.create({
+        let invite = await this.inviteRepo.findPendingInvite(
             workspaceId,
             email,
-            role,
-            token,
-            invitedBy: inviterId,
-            expiredAt: dayjs().add(7, 'day').toDate(),
-        })
+        )
+
+        const token = randomUUID()
+        const expiredAt = dayjs().add(7, 'day').toDate()
+
+        if (invite) {
+            invite.token = token
+            invite.expiredAt = expiredAt
+            invite.role = role
+        } else {
+            invite = new WorkspaceInvite()
+            invite.workspaceId = workspaceId
+            invite.email = email
+            invite.role = role
+            invite.token = token
+            invite.invitedBy = inviterId
+            invite.expiredAt = expiredAt
+        }
 
         await this.inviteRepo.save(invite)
-
-        const inviteUrl = `${this.config.get(
-            'FRONTEND_URL',
-        )}/invite/accept?token=${token}`
 
         await this.mailService.sendTemplateMail({
             to: email,
             subject: 'Bạn được mời vào Workspace',
             template: 'workspace-invite',
             context: {
-                workspaceName: 'My Workspace',
+                workspaceName: 'Workspace',
                 role,
-                inviteLink: inviteUrl,
+                inviteLink: `${process.env.FRONTEND_URL}/invite?token=${token}`,
                 expiredIn: 7,
             },
         })
-
 
         return { success: true }
     }
 
     async acceptInvite(token: string, userId: string) {
-        const invite = await this.inviteRepo.findOne({
-            where: { token, status: 'pending' },
-        })
+        const invite = await this.inviteRepo.findByToken(token)
 
         if (!invite) {
             throw new NotFoundError('Invite không hợp lệ')
         }
 
         if (invite.expiredAt < new Date()) {
-            invite.status = 'expired'
+            invite.status = WorkspaceInviteStatus.EXPIRED
             await this.inviteRepo.save(invite)
             throw new BadRequestError('Invite đã hết hạn')
         }
 
-        const existed = await this.memberRepo.findOne({
-            where: { workspaceId: invite.workspaceId, userId },
-        })
+        const user = await this.userRepo.findById(userId)
 
-        if (!existed) {
-            const member = this.memberRepo.create({
-                workspaceId: invite.workspaceId,
-                userId,
-                role: invite.role,
-            })
-            await this.memberRepo.save(member)
+        if (!user || user.email !== invite.email) {
+            throw new BadRequestError('Invite không thuộc email này')
         }
 
-        invite.status = 'accepted'
+        await this.memberRepo.createMember(
+            invite.workspaceId,
+            userId,
+            invite.role,
+        )
+
+        invite.status = WorkspaceInviteStatus.ACCEPTED
         await this.inviteRepo.save(invite)
 
-        return { success: true }
+        return { workspaceId: invite.workspaceId }
     }
 
-    async listInvites(workspaceId: string) {
-        return this.inviteRepo.find({
-            where: { workspaceId, status: 'pending' },
-            order: { createdAt: 'DESC' },
-        })
+    listInvites(workspaceId: string) {
+        return this.inviteRepo.listInvites(workspaceId)
     }
 
-    async revokeInvite(inviteId: string) {
-        const invite = await this.inviteRepo.findOne({
-            where: { id: inviteId },
-        })
-
-        if (!invite) return
-
-        invite.status = 'expired'
-        await this.inviteRepo.save(invite)
+    revokeInvite(inviteId: string) {
+        return this.inviteRepo.expire(inviteId)
     }
 }
+

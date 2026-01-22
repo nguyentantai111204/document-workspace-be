@@ -10,17 +10,24 @@ import { WorkspaceInvite } from "./entities/workspace-invite.entity";
 import { WorkspaceInviteService } from "./services/workspace-invite.service";
 import { WorkspaceInviteController } from "./controller/workspace-invite.controller";
 import { MailModule } from "src/common/services/mail/mail.module";
+import { WorkspaceRepository } from "./repositories/workspace.repository";
+import { WorkspaceMemberRepository } from "./repositories/workspace-memeber.repository";
+import { WorkspaceInviteRepository } from "./repositories/workspace-invite.repository";
+import { UsersModule } from "../users/user.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Workspace, WorkspaceMember, WorkspaceInvite]),
-        MailModule,
+        MailModule, UsersModule,
     ],
     controllers: [WorkspaceController, WorkspaceInviteController],
     providers: [
         WorkspaceService,
         WorkspaceMemberService,
         WorkspaceInviteService,
+        WorkspaceRepository,
+        WorkspaceMemberRepository,
+        WorkspaceInviteRepository,
         WorkspaceGuard
     ],
     exports: [WorkspaceMemberService, WorkspaceGuard, TypeOrmModule],
