@@ -8,6 +8,7 @@ import { FileService } from "./services/file.service";
 import { FileController } from "./controller/file.controller";
 import { FileValidationService } from "./services/file-validation.service";
 import { WorkspaceModule } from "../workspaces/workspace.module";
+import { FileRepository } from "./repositories/file.repository";
 
 @Module({
     imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule],
@@ -19,6 +20,7 @@ import { WorkspaceModule } from "../workspaces/workspace.module";
         },
         FileService,
         FileValidationService,
+        FileRepository,
     ],
     controllers: [FileController],
 })

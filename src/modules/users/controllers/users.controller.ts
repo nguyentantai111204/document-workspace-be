@@ -5,6 +5,7 @@ import { ChangePasswordDto } from "../dto/change-password.dto";
 import { User } from "../entities/user.entity";
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "../service/user.service";
+import { BypassResponseFormat } from "src/common/interceptors/bypass-response-format.interceptor";
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -14,10 +15,11 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
     @Get('me')
+    @BypassResponseFormat()
     @ApiOperation({ summary: 'Lấy thông tin người dùng hiện tại' })
     @ApiResponse({ status: 200, description: 'Trả về thông tin user', type: User })
-    getMe(@CurrentUser() user: User) {
-        return user;
+    async getMe(@CurrentUser() user: User) {
+        return this.usersService.findById(user.id);
     }
 
     @Patch('change-password')

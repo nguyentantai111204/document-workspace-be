@@ -1,20 +1,16 @@
 import { Injectable } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import { Repository } from "typeorm"
 import { FileEntity } from "../entities/file.entity"
 import { FileStorageService } from "./file-storage.service"
 import { FileStatus } from "../enums/file-status.enum"
 import { FileValidationService } from "./file-validation.service"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { FileQueryDto } from "../dto/file-query.dto"
-import { buildPaginationMeta } from "src/common/utils/pagination.utils"
-import { FileSortField } from "../enums/file-sort-field.enum"
+import { FileRepository } from "../repositories/file.repository"
 
 @Injectable()
 export class FileService {
     constructor(
-        @InjectRepository(FileEntity)
-        private readonly fileRepo: Repository<FileEntity>,
+        private readonly fileRepo: FileRepository,
         private readonly storage: FileStorageService,
         private readonly validator: FileValidationService,
     ) { }
@@ -31,7 +27,7 @@ export class FileService {
             `workspaces/${params.workspaceId}`,
         )
 
-        const entity = this.fileRepo.create({
+        const entity = this.fileRepo.createFile({
             workspaceId: params.workspaceId,
             ownerId: params.userId,
             name: params.file.originalname,
@@ -49,46 +45,7 @@ export class FileService {
         workspaceId: string,
         query: FileQueryDto,
     ) {
-        const {
-            page = 1,
-            limit = 20,
-            search,
-            mimeType,
-            ownerId,
-            sortBy = FileSortField.CREATED_AT,
-            sortOrder = 'DESC',
-        } = query
-
-        const skip = (page - 1) * limit
-
-        const qb = this.fileRepo.createQueryBuilder('file')
-
-        qb.where('file.workspaceId = :workspaceId', { workspaceId })
-            .andWhere('file.status = :status', { status: FileStatus.ACTIVE })
-
-        if (mimeType) {
-            qb.andWhere('file.mimeType = :mimeType', { mimeType })
-        }
-
-        if (ownerId) {
-            qb.andWhere('file.ownerId = :ownerId', { ownerId })
-        }
-
-        if (search) {
-            qb.andWhere('file.name ILIKE :search', {
-                search: `%${search}%`,
-            })
-        }
-
-        qb.orderBy(`file.${sortBy}`, sortOrder)
-        qb.skip(skip).take(limit)
-
-        const [items, total] = await qb.getManyAndCount()
-
-        return {
-            items,
-            meta: buildPaginationMeta(page, limit, total),
-        }
+        return this.fileRepo.listFiles(workspaceId, query)
     }
 
 
