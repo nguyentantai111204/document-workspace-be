@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common"
+import slugify from "slugify"
 import { FileEntity } from "../entities/file.entity"
 import { FileStorageService } from "./file-storage.service"
 import { FileStatus } from "../enums/file-status.enum"
@@ -21,6 +22,21 @@ export class FileService {
         file: Express.Multer.File
     }) {
         const validated = await this.validator.validate(params.file)
+
+        // Parse to slug
+        const originalName = params.file.originalname
+        const lastDotIndex = originalName.lastIndexOf('.')
+
+        let name = originalName
+        let ext = ''
+
+        if (lastDotIndex !== -1) {
+            name = originalName.substring(0, lastDotIndex)
+            ext = originalName.substring(lastDotIndex)
+        }
+
+        const slug = slugify(name, { lower: true, locale: 'vi' })
+        params.file.originalname = `${slug}${ext}`
 
         const uploaded = await this.storage.upload(
             params.file,

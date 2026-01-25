@@ -5,11 +5,37 @@ import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 @Injectable()
 export class FileValidationService {
     private readonly allowedMimeTypes = [
+        // Images
         'image/png',
         'image/jpeg',
         'image/webp',
+
+        // PDF
         'application/pdf',
+
+        // Word
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+
+        // Excel
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+
+        // PowerPoint
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
+        // Text
+        'text/plain',
+
+        // Audio
+        'audio/mpeg',
+        'audio/wav',
+        'audio/ogg',
+        'audio/webm',
+        'audio/mp4',
     ]
+
 
     private readonly maxFileSize = 10 * 1024 * 1024 // 10MB
 
@@ -23,7 +49,7 @@ export class FileValidationService {
             throw new BadRequestError('File vượt quá dung lượng cho phép')
         }
 
-        // Check MIME thật (magic bytes)
+        // Check MIME thật s
         const fileType = await fileTypeFromBuffer(file.buffer)
 
         if (!fileType) {
