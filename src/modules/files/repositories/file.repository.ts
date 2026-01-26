@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Repository, Brackets } from 'typeorm'
 import { FileEntity } from '../entities/file.entity'
 import { FileQueryDto } from '../dto/file-query.dto'
 import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interface'
@@ -59,6 +59,26 @@ export class FileRepository {
 
         if (ownerId) {
             qb.andWhere('file.ownerId = :ownerId', { ownerId })
+        }
+
+        if (query.type) {
+            const types = query.type.split(',')
+            qb.andWhere(new Brackets(qb => {
+                types.forEach(type => {
+                    if (type === 'folder') {
+                        qb.orWhere('file.mimeType = :folder', { folder: 'folder' })
+                    } else if (type === 'image') {
+                        qb.orWhere('file.mimeType LIKE :image', { image: 'image/%' })
+                    } else if (type === 'document') {
+                        qb.orWhere('file.mimeType LIKE :pdf', { pdf: 'application/pdf' })
+                            .orWhere('file.mimeType LIKE :doc', { doc: 'application/msword' })
+                            .orWhere('file.mimeType LIKE :docx', { docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })
+                            .orWhere('file.mimeType LIKE :xls', { xls: 'application/vnd.ms-excel' })
+                            .orWhere('file.mimeType LIKE :xlsx', { xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+                            .orWhere('file.mimeType LIKE :txt', { txt: 'text/plain' })
+                    }
+                })
+            }))
         }
 
         if (search) {

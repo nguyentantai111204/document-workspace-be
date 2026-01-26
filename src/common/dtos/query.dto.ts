@@ -1,13 +1,13 @@
 import { PaginationDto } from './pagination.dto'
 import type { SortDto, SortOrder } from './sort.dto'
-import { IsOptional, IsEnum } from 'class-validator'
+import { IsOptional, IsEnum, IsString } from 'class-validator'
 
 
 export class QueryDto<TSort extends string = string>
     extends PaginationDto
     implements SortDto<TSort> {
     @IsOptional()
-    @IsEnum({} as any)
+    @IsString()
     sortBy?: TSort
 
     @IsOptional()

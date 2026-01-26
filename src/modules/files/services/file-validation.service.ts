@@ -49,22 +49,31 @@ export class FileValidationService {
             throw new BadRequestError('File vượt quá dung lượng cho phép')
         }
 
-        // Check MIME thật s
+        // Check MIME thật sự
         const fileType = await fileTypeFromBuffer(file.buffer)
 
-        if (!fileType) {
-            throw new BadRequestError('Không xác định được loại file')
+        // Fallback cho file text (file-type không detect được)
+        let mime = fileType?.mime
+        let ext = fileType?.ext
+
+        if (!mime) {
+            if (file.mimetype === 'text/plain' || file.originalname.endsWith('.txt') || file.originalname.endsWith('.TXT')) {
+                mime = 'text/plain'
+                ext = 'txt'
+            } else {
+                throw new BadRequestError('Không xác định được loại file')
+            }
         }
 
-        if (!this.allowedMimeTypes.includes(fileType.mime)) {
+        if (!this.allowedMimeTypes.includes(mime)) {
             throw new BadRequestError(
-                `File không được hỗ trợ (${fileType.mime})`,
+                `File không được hỗ trợ (${mime})`,
             )
         }
 
         return {
-            mimeType: fileType.mime,
-            extension: fileType.ext,
+            mimeType: mime,
+            extension: ext,
         }
     }
 }
