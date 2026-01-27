@@ -2,6 +2,9 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { User } from "../entities/user.entity"
 import { Repository } from "typeorm"
+import { PaginatedResponse } from "src/common/interfaces/paginated-result.interface"
+import { buildPaginationMeta } from "src/common/utils/pagination.utils"
+import { UserStatus } from "../enums/user-status.enum"
 
 @Injectable()
 export class UsersRepository {
@@ -46,6 +49,35 @@ export class UsersRepository {
 
   updatePassword(id: string, passwordHash: string) {
     return this.repo.update(id, { password: passwordHash })
+  }
+
+  async searchUsers(
+    query: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedResponse<User>> {
+    const skip = (page - 1) * limit
+
+    const qb = this.repo
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.email', 'user.fullName', 'user.avatarUrl'])
+      .where('user.status = :status', { status: UserStatus.ACTIVE })
+
+    if (query) {
+      qb.andWhere(
+        '(LOWER(user.email) LIKE LOWER(:query) OR LOWER(user.fullName) LIKE LOWER(:query))',
+        { query: `%${query}%` }
+      )
+    }
+
+    qb.skip(skip).take(limit)
+
+    const [items, total] = await qb.getManyAndCount()
+
+    return {
+      items,
+      meta: buildPaginationMeta(page, limit, total),
+    }
   }
 
   createUser(data: Partial<User>) {

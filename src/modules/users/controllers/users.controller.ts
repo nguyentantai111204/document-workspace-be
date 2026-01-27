@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { ChangePasswordDto } from "../dto/change-password.dto";
@@ -6,6 +6,7 @@ import { User } from "../entities/user.entity";
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "../service/user.service";
 import { BypassResponseFormat } from "src/common/interceptors/bypass-response-format.interceptor";
+import { SearchUsersDto } from "../dto/search-users.dto";
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -20,6 +21,13 @@ export class UsersController {
     @ApiResponse({ status: 200, description: 'Trả về thông tin user', type: User })
     async getMe(@CurrentUser() user: User) {
         return this.usersService.findById(user.id);
+    }
+
+    @Get('search')
+    @ApiOperation({ summary: 'Tìm kiếm người dùng theo email hoặc tên' })
+    @ApiResponse({ status: 200, description: 'Danh sách người dùng tìm được', type: [User] })
+    async searchUsers(@Query() dto: SearchUsersDto) {
+        return this.usersService.searchUsers(dto);
     }
 
     @Patch('change-password')

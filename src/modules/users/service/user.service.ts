@@ -6,6 +6,7 @@ import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from "../dto/change-password.dto"
 import { KeyTokenService } from "src/modules/key-token/service/key-token.service"
+import { SearchUsersDto } from "../dto/search-users.dto"
 @Injectable()
 export class UsersService {
     constructor(
@@ -35,6 +36,11 @@ export class UsersService {
             ...dto,
             password: passwordHash,
         })
+    }
+
+    async searchUsers(dto: SearchUsersDto) {
+        const { email, page = 1, limit = 10 } = dto
+        return this.usersRepo.searchUsers(email || '', page, limit)
     }
 
     async changePassword(userId: string, dto: ChangePasswordDto) {

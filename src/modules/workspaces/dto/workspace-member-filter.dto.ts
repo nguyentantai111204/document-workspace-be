@@ -8,6 +8,10 @@ export class ListMembersQueryDto extends PaginationDto {
     search?: string;
 
     @IsOptional()
+    @IsString()
+    email?: string;
+
+    @IsOptional()
     @IsEnum(WorkspaceRole)
     role?: WorkspaceRole;
 }
