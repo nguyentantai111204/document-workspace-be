@@ -9,6 +9,7 @@ export class FileValidationService {
         'image/png',
         'image/jpeg',
         'image/webp',
+        'image/svg+xml',
 
         // PDF
         'application/pdf',
@@ -20,6 +21,7 @@ export class FileValidationService {
         // Excel
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/csv',
 
         // PowerPoint
         'application/vnd.ms-powerpoint',
@@ -34,7 +36,12 @@ export class FileValidationService {
         'audio/ogg',
         'audio/webm',
         'audio/mp4',
+
+        // (Optional) Video
+        'video/mp4',
+        'video/webm',
     ]
+
 
 
     private readonly maxFileSize = 10 * 1024 * 1024 // 10MB
@@ -44,9 +51,13 @@ export class FileValidationService {
             throw new BadRequestError('File không tồn tại')
         }
 
-        // Check size lần 2
+        if (file.size === 0) {
+            throw new BadRequestError('File không được để trống (0 bytes)')
+        }
+
+        // Check SIZE lần 2 (max size)
         if (file.size > this.maxFileSize) {
-            throw new BadRequestError('File vượt quá dung lượng cho phép')
+            throw new BadRequestError(`File vượt quá dung lượng cho phép (${this.maxFileSize / 1024 / 1024}MB)`)
         }
 
         // Check MIME thật sự
@@ -57,11 +68,15 @@ export class FileValidationService {
         let ext = fileType?.ext
 
         if (!mime) {
-            if (file.mimetype === 'text/plain' || file.originalname.endsWith('.txt') || file.originalname.endsWith('.TXT')) {
+            const isText = file.mimetype === 'text/plain'
+                || file.mimetype === 'application/json'
+                || file.originalname.match(/\.(txt|json|csv|md|html|css|js|ts)$/i)
+
+            if (isText) {
                 mime = 'text/plain'
                 ext = 'txt'
             } else {
-                throw new BadRequestError('Không xác định được loại file')
+                throw new BadRequestError('Không xác định được loại file. Vui lòng kiểm tra lại file của bạn.')
             }
         }
 

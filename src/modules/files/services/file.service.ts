@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common"
 import slugify from "slugify"
-import { FileEntity } from "../entities/file.entity"
 import { FileStorageService } from "./file-storage.service"
 import { FileStatus } from "../enums/file-status.enum"
 import { FileValidationService } from "./file-validation.service"
@@ -25,7 +24,6 @@ export class FileService {
             throw new BadRequestError('Không có file nào được gửi lên')
         }
 
-        // 1. Validate ALL files first (Atomic Validation)
         const validatedFiles = await Promise.all(
             params.files.map(async (file) => {
                 const validated = await this.validator.validate(file)
@@ -36,10 +34,8 @@ export class FileService {
             })
         )
 
-        // 2. Upload & Save (Parallel)
         const results = await Promise.all(
             validatedFiles.map(async (fileData) => {
-                // Parse to slug
                 const originalName = fileData.original.originalname
                 const lastDotIndex = originalName.lastIndexOf('.')
 
@@ -54,13 +50,11 @@ export class FileService {
                 const slug = slugify(name, { lower: true, locale: 'vi' })
                 fileData.original.originalname = `${slug}${ext}`
 
-                // Upload
                 const uploaded = await this.storage.upload(
                     fileData.original,
                     `workspaces/${params.workspaceId}`,
                 )
 
-                // Create Entity
                 const entity = this.fileRepo.createFile({
                     workspaceId: params.workspaceId,
                     ownerId: params.userId,
@@ -118,7 +112,7 @@ export class FileService {
         }
 
 
-        await this.storage.delete(file.publicId)
+        await this.storage.delete(file.publicId, file.mimeType)
 
         file.status = FileStatus.DELETED
         return this.fileRepo.save(file)

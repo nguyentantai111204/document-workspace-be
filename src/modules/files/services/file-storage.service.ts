@@ -7,5 +7,5 @@ export interface UploadResult {
 
 export abstract class FileStorageService {
     abstract upload(file: Express.Multer.File, folder: string): Promise<UploadResult>
-    abstract delete(publicId: string): Promise<void>
+    abstract delete(publicId: string, mimeType?: string): Promise<void>
 }
