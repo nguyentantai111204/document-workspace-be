@@ -1,12 +1,12 @@
 import {
-    Controller, Delete, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors
+    Controller, Delete, Get, Param, Post, Query, UploadedFiles, UseGuards, UseInterceptors
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { WorkspacePolicyGuard } from "src/common/guards/workspace-action.guard";
 import { WorkspaceGuard } from "src/common/guards/workspace.guard";
 import { FileService } from "../services/file.service";
 import { WorkspaceActionPermission } from "src/common/decorators/workspace-action.decorator";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor, FileFieldsInterceptor } from "@nestjs/platform-express";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { CurrentWorkspace } from "src/common/decorators/current-workspace.decorator";
 import { WorkspaceAction } from "src/modules/workspaces/enums/workspace-action.enum";
@@ -30,14 +30,17 @@ export class FileController {
     @Post()
     @WorkspaceActionPermission(WorkspaceAction.UPLOAD_FILE)
     @UseInterceptors(
-        FileInterceptor('file', {
+        FileFieldsInterceptor([
+            { name: 'file', maxCount: 1 },
+            { name: 'files', maxCount: 10 },
+        ], {
             storage: multer.memoryStorage(),
             limits: {
                 fileSize: 10 * 1024 * 1024, // 10MB
             },
         }),
     )
-    @ApiOperation({ summary: 'Upload file vào workspace' })
+    @ApiOperation({ summary: 'Upload file vào workspace (hỗ trợ single "file" hoặc multi "files")' })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -46,24 +49,36 @@ export class FileController {
                 file: {
                     type: 'string',
                     format: 'binary',
-                    description: 'File cần upload'
+                    description: 'Single upload (legacy)'
+                },
+                files: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        format: 'binary',
+                    },
+                    description: 'Multi upload'
                 },
             },
-            required: ['file'],
         },
     })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiResponse({ status: 201, description: 'Upload thành công' })
     @ApiResponse({ status: 400, description: 'File không hợp lệ' })
     upload(
-        @UploadedFile() file: Express.Multer.File,
+        @UploadedFiles() files: { file?: Express.Multer.File[], files?: Express.Multer.File[] },
         @CurrentUser() user,
         @CurrentWorkspace() workspace,
     ) {
-        return this.fileService.uploadFile({
+        const allFiles = [
+            ...(files.file || []),
+            ...(files.files || []),
+        ];
+
+        return this.fileService.uploadMany({
             workspaceId: workspace.id,
             userId: user.id,
-            file,
+            files: allFiles,
         });
     }
 
