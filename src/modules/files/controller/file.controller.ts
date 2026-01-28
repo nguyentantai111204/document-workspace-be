@@ -1,12 +1,12 @@
 import {
-    Controller, Delete, Get, Param, Post, Query, UploadedFiles, UseGuards, UseInterceptors
+    Controller, Delete, Get, Param, Post, Query, UploadedFiles, UseGuards, UseInterceptors, Body, Patch
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { WorkspacePolicyGuard } from "src/common/guards/workspace-action.guard";
 import { WorkspaceGuard } from "src/common/guards/workspace.guard";
 import { FileService } from "../services/file.service";
 import { WorkspaceActionPermission } from "src/common/decorators/workspace-action.decorator";
-import { FilesInterceptor, FileFieldsInterceptor } from "@nestjs/platform-express";
+import {  FileFieldsInterceptor } from "@nestjs/platform-express";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { CurrentWorkspace } from "src/common/decorators/current-workspace.decorator";
 import { WorkspaceAction } from "src/modules/workspaces/enums/workspace-action.enum";
@@ -15,8 +15,8 @@ import { FileActionGuard } from "src/common/guards/file-action.guard";
 import { FileActionPermission } from "src/common/decorators/file-action.decorator";
 import { FileAction } from "../enums/file-action.enum";
 import { FileOwnershipGuard } from "src/common/guards/file-ownership.guard";
-import { PaginationDto } from "src/common/dtos/pagination.dto";
 import { FileQueryDto } from "../dto/file-query.dto";
+import { UpdateFileDto } from "../dto/update-file.dto";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Files')
@@ -95,6 +95,29 @@ export class FileController {
         @Query() query: FileQueryDto,
     ) {
         return this.fileService.listByWorkspace(workspaceId, query);
+    }
+
+    // update
+    @Patch(':fileId')
+    @UseGuards(FileActionGuard, FileOwnershipGuard)
+    @FileActionPermission(FileAction.UPDATE)
+    @ApiOperation({ summary: 'Cập nhật thông tin file' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'fileId', description: 'ID của file cần cập nhật' })
+    @ApiBody({ type: UpdateFileDto })
+    @ApiResponse({ status: 200, description: 'Cập nhật thành công' })
+    update(
+        @Param('fileId') fileId: string,
+        @CurrentWorkspace() workspace,
+        @CurrentUser() user,
+        @Body() body: UpdateFileDto,
+    ) {
+        return this.fileService.updateFile({
+            fileId,
+            workspaceId: workspace.id,
+            userId: user.id,
+            data: body,
+        });
     }
 
     // delete

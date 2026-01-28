@@ -6,6 +6,8 @@ import { FileValidationService } from "./file-validation.service"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { FileQueryDto } from "../dto/file-query.dto"
 import { FileRepository } from "../repositories/file.repository"
+import { UpdateFileDto } from "../dto/update-file.dto"
+import { ForbiddenError } from "src/common/exceptions/forbiden.exception"
 
 @Injectable()
 export class FileService {
@@ -94,6 +96,35 @@ export class FileService {
     }
 
 
+    async updateFile(params: {
+        fileId: string
+        workspaceId: string
+        userId: string
+        data: UpdateFileDto
+    }) {
+        const file = await this.fileRepo.findOne({
+            where: {
+                id: params.fileId,
+                workspaceId: params.workspaceId,
+                status: FileStatus.ACTIVE,
+            },
+        })
+
+        if (!file) {
+            throw new BadRequestError('File không tồn tại')
+        }
+
+
+        if (params.data.name) {
+            const lastDotIndex = file.name.lastIndexOf('.')
+            const ext = lastDotIndex !== -1 ? file.name.substring(lastDotIndex) : ''
+            file.name = params.data.name + ext
+        }
+
+        return this.fileRepo.save(file)
+    }
+
+
     async deleteFile(params: {
         fileId: string
         workspaceId: string
@@ -117,5 +148,6 @@ export class FileService {
         file.status = FileStatus.DELETED
         return this.fileRepo.save(file)
     }
+
 }
 
