@@ -7,6 +7,7 @@ import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interf
 import { buildPaginationMeta } from 'src/common/utils/pagination.utils'
 import { WorkspaceSortField } from '../enums/workspace-sort-field.enum'
 import { SortOrder } from 'src/common/enums/sort.enum'
+import slugify from 'slugify'
 
 @Injectable()
 export class WorkspaceRepository {
@@ -28,6 +29,19 @@ export class WorkspaceRepository {
             this.repo.create({ name, slug, ownerId }),
         )
     }
+
+    async updateWorkspace(
+        workspaceId: string,
+        name: string,
+    ) {
+        const slug = slugify(name, { lower: true })
+
+        return this.repo.update(workspaceId, {
+            name,
+            slug,
+        })
+    }
+
 
     async listUserWorkspaces(
         userId: string,

@@ -28,6 +28,7 @@ import { WorkspaceAction } from '../enums/workspace-action.enum';
 import { WorkspaceInviteService } from '../services/workspace-invite.service';
 import { AcceptInviteDto } from '../dto/accept-invite.dto';
 import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
+import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -121,6 +122,15 @@ export class WorkspaceController {
             dto.userId,
             dto.role,
         )
+    }
+
+    @Patch(':workspaceId')
+    @UseGuards(WorkspaceGuard)
+    updateWorkspace(
+        @Param('workspaceId') workspaceId: string,
+        @Body() dto: UpdateWorkspaceDto,
+    ) {
+        return this.workspaceService.updateWorkspace(workspaceId, dto.name);
     }
 
 }

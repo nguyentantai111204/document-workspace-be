@@ -38,6 +38,10 @@ export class WorkspaceService {
         return this.workspaceRepo.listUserWorkspaces(userId, query)
     }
 
+    updateWorkspace(workspaceId: string, name: string) {
+        return this.workspaceRepo.updateWorkspace(workspaceId, name)
+    }
+
     async getWorkspaceDetail(
         workspaceId: string,
         userId: string,
@@ -52,7 +56,6 @@ export class WorkspaceService {
             workspaceId,
             userId,
         )
-
         return {
             workspace,
             role,
