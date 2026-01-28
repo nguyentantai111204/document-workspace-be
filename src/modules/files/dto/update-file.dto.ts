@@ -1,3 +1,8 @@
+import { IsNotEmpty, IsString } from "class-validator";
+
 export class UpdateFileDto {
-    name?: string
+
+    @IsNotEmpty()
+    @IsString()
+    name: string
 }

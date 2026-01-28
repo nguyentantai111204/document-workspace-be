@@ -6,15 +6,18 @@ export const FilePolicy: Record<WorkspaceRole, FileAction[]> = {
         FileAction.READ,
         FileAction.DELETE,
         FileAction.DOWNLOAD,
+        FileAction.UPDATE,
     ],
     ADMIN: [
         FileAction.READ,
         FileAction.DELETE,
         FileAction.DOWNLOAD,
+        FileAction.UPDATE,
     ],
     MEMBER: [
         FileAction.READ,
         FileAction.DOWNLOAD,
+        FileAction.UPDATE,
     ],
     VIEWER: [
         FileAction.READ,
