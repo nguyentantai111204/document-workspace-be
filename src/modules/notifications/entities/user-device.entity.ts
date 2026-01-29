@@ -9,6 +9,9 @@ export class UserDevice extends BaseEntity {
     @Column({ name: 'fcm_token' })
     fcmToken: string
 
+    @Column({ name: 'device_id' })
+    deviceId: string
+
     @Column({ name: 'device_type', nullable: true })
     deviceType: string // android, ios, web
 

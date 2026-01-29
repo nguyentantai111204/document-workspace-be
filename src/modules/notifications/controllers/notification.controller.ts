@@ -44,7 +44,7 @@ export class NotificationController {
         @Body() dto: RegisterDeviceDto,
         @CurrentUser() user,
     ) {
-        return this.userDeviceRepo.registerDevice(user.id, dto.token, dto.deviceType);
+        return this.userDeviceRepo.registerDevice(user.id, dto.token, dto.deviceId, dto.deviceType);
     }
 
     @Patch(':id/read')

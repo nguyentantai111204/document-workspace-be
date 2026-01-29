@@ -10,16 +10,17 @@ export class UserDeviceRepository {
         private readonly repo: Repository<UserDevice>,
     ) { }
 
-    async registerDevice(userId: string, token: string, deviceType?: string) {
-        let device = await this.repo.findOne({ where: { fcmToken: token } })
+    async registerDevice(userId: string, token: string, deviceId: string, deviceType?: string) {
+        let device = await this.repo.findOne({ where: { userId, deviceId } })
 
         if (device) {
-            device.userId = userId
+            device.fcmToken = token
             device.lastActiveAt = new Date()
             if (deviceType) device.deviceType = deviceType
         } else {
             device = this.repo.create({
                 userId,
+                deviceId,
                 fcmToken: token,
                 deviceType,
             })

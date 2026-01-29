@@ -11,4 +11,9 @@ export class RegisterDeviceDto {
     @IsOptional()
     @IsString()
     deviceType?: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    deviceId: string;
 }
