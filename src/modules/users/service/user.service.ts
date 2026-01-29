@@ -22,16 +22,11 @@ export class UsersService {
     }
 
     async findById(id: string) {
-        const cacheKey = `user:${id}:profile`;
-        const cached = await this.redisService.getJson<User>(cacheKey);
-        if (cached) return cached;
-
-        const user = await this.usersRepo.findById(id)
-        if (!user) throw new BadRequestError('Không tìm thấy người dùng')
-
-        await this.redisService.setJson(cacheKey, user, 3600);
-
-        return user
+        return this.redisService.remember(`user:${id}:profile`, 3600, async () => {
+            const user = await this.usersRepo.findById(id)
+            if (!user) throw new BadRequestError('Không tìm thấy người dùng')
+            return user
+        });
     }
 
     async create(dto: CreateUserDto) {

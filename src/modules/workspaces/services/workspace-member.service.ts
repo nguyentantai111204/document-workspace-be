@@ -41,19 +41,13 @@ export class WorkspaceMemberService {
         workspaceId: string,
         userId: string,
     ) {
-        const cacheKey = `workspace:${workspaceId}:member:${userId}`;
-        const cached = await this.redisService.getJson<any>(cacheKey);
-
-        if (cached !== null) return cached;
-
-        const member = await this.memberRepo.findByWorkspaceAndUser(
-            workspaceId,
-            userId,
-        )
-
-        const role = member?.role ?? null;
-        await this.redisService.setJson(cacheKey, role, 3600); // 1 hour
-        return role
+        return this.redisService.remember(`workspace:${workspaceId}:member:${userId}`, 3600, async () => {
+            const member = await this.memberRepo.findByWorkspaceAndUser(
+                workspaceId,
+                userId,
+            )
+            return member?.role ?? null
+        });
     }
 
     async removeMember(

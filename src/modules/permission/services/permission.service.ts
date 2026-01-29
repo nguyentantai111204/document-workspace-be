@@ -12,25 +12,19 @@ export class PermissionService {
     ) { }
 
     async getPermissionsByUser(userId: string): Promise<string[]> {
-        const cacheKey = `user:${userId}:permissions`;
-        const cached = await this.redisService.getJson<string[]>(cacheKey);
-        if (cached) return cached;
+        return this.redisService.remember(`user:${userId}:permissions`, 3600, async () => {
+            const userRoles = await this.userRoleRepo.findByUserIdWithPermissions(userId)
 
-        const userRoles =
-            await this.userRoleRepo.findByUserIdWithPermissions(userId)
+            const permissions = new Set<string>()
 
-        const permissions = new Set<string>()
-
-        for (const ur of userRoles) {
-            for (const rp of ur.role.rolePermissions) {
-                permissions.add(rp.permission.code)
+            for (const ur of userRoles) {
+                for (const rp of ur.role.rolePermissions) {
+                    permissions.add(rp.permission.code)
+                }
             }
-        }
 
-        const result = [...permissions];
-        await this.redisService.setJson(cacheKey, result, 3600);
-
-        return result
+            return [...permissions];
+        });
     }
 
     async assignDefaultRole(userId: string) {

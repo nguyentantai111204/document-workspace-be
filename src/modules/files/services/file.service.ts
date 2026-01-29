@@ -96,6 +96,32 @@ export class FileService {
         return this.fileRepo.listFiles(workspaceId, query)
     }
 
+    async getFileDetail(params: {
+        fileId: string
+        workspaceId: string
+    }) {
+        const file = await this.redisService.remember(`file:${params.fileId}:metadata`, 86400, async () => {
+            return this.fileRepo.findOne({
+                where: {
+                    id: params.fileId,
+                    workspaceId: params.workspaceId,
+                    status: FileStatus.ACTIVE,
+                },
+            })
+        });
+
+        if (!file) {
+            throw new BadRequestError('File không tồn tại')
+        }
+
+        if (file.workspaceId !== params.workspaceId || file.status !== FileStatus.ACTIVE) {
+            await this.redisService.del(`file:${params.fileId}:metadata`);
+            throw new BadRequestError('File không tồn tại (cache mismatch)')
+        }
+
+        return file;
+    }
+
 
     async updateFile(params: {
         fileId: string

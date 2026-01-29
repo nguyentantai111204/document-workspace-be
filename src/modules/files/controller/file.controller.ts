@@ -6,7 +6,7 @@ import { WorkspacePolicyGuard } from "src/common/guards/workspace-action.guard";
 import { WorkspaceGuard } from "src/common/guards/workspace.guard";
 import { FileService } from "../services/file.service";
 import { WorkspaceActionPermission } from "src/common/decorators/workspace-action.decorator";
-import {  FileFieldsInterceptor } from "@nestjs/platform-express";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { CurrentWorkspace } from "src/common/decorators/current-workspace.decorator";
 import { WorkspaceAction } from "src/modules/workspaces/enums/workspace-action.enum";
@@ -95,6 +95,23 @@ export class FileController {
         @Query() query: FileQueryDto,
     ) {
         return this.fileService.listByWorkspace(workspaceId, query);
+    }
+
+    @Get(':fileId')
+    @UseGuards(FileActionGuard)
+    @FileActionPermission(FileAction.READ)
+    @ApiOperation({ summary: 'Lấy chi tiết file' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'fileId', description: 'ID của file' })
+    @ApiResponse({ status: 200, description: 'Thông tin file' })
+    getDetail(
+        @Param('fileId') fileId: string,
+        @CurrentWorkspace() workspace,
+    ) {
+        return this.fileService.getFileDetail({
+            fileId,
+            workspaceId: workspace.id,
+        });
     }
 
     // update

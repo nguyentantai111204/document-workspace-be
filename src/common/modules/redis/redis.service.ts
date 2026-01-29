@@ -65,6 +65,25 @@ export class RedisService implements OnModuleDestroy {
         }
     }
 
+    async remember<T>(
+        key: string,
+        ttl: number,
+        callback: () => Promise<T>,
+    ): Promise<T> {
+        const cached = await this.getJson<T>(key);
+        if (cached !== null) {
+            return cached;
+        }
+
+        const value = await callback();
+
+        if (value !== undefined) {
+            await this.setJson(key, value, ttl);
+        }
+
+        return value;
+    }
+
     getClient(): Redis {
         return this.redis;
     }

@@ -49,19 +49,15 @@ export class WorkspaceService {
         workspaceId: string,
         userId: string,
     ) {
-        const cacheKey = `workspace:${workspaceId}:details`;
-        let workspace = await this.redisService.getJson<any>(cacheKey);
+        const workspace = await this.redisService.remember(`workspace:${workspaceId}:details`, 86400, async () => {
+            return this.workspaceRepo.findById(workspaceId)
+        });
 
         if (!workspace) {
-            workspace = await this.workspaceRepo.findById(workspaceId)
-            if (workspace) {
-                await this.redisService.setJson(cacheKey, workspace, 86400); // 24 hours
-            }
-        }
-
-        if (!workspace) {
+            // Note: If remember returns null (callback returns null), we handle it here
             throw new BadRequestError('Workspace không tồn tại')
         }
+
 
         const role = await this.memberService.getUserRole(
             workspaceId,
