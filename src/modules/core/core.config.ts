@@ -11,4 +11,10 @@ export default () => ({
         secret: process.env.JWT_SECRET ?? 'default-secret',
         expiresIn: process.env.JWT_EXPIRES ?? '15m',
     },
+    redis: {
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+        password: process.env.REDIS_PASSWORD ?? '',
+        db: parseInt(process.env.REDIS_DB ?? '0', 10),
+    },
 });

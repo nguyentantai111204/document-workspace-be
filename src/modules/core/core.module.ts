@@ -11,11 +11,12 @@ import { PermissionModule } from "../permission/permission.module";
 import { SeedModule } from "./seeds/seed.module";
 import { WorkspaceModule } from "../workspaces/workspace.module";
 import { FileModule } from "../files/file.module";
+import { RedisModule } from "src/common/modules/redis/redis.module";
 
 @Module({
   imports: [
     AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,
-    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule],
+    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule, RedisModule],
   providers: [
     {
       provide: APP_FILTER,

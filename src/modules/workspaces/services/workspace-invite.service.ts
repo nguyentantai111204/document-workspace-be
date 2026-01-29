@@ -8,12 +8,11 @@ import { WorkspaceInvite } from '../entities/workspace-invite.entity'
 import { WorkspaceRole } from '../enums/workspace-role.enum'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 import { NotFoundError } from 'src/common/exceptions/not-found.exception'
-import { MailService } from 'src/common/services/mail/mail.service'
-import { User } from 'src/modules/users/entities/user.entity'
 import { WorkspaceInviteStatus } from '../enums/workspace-invite-status.enum'
 import { WorkspaceInviteRepository } from '../repositories/workspace-invite.repository'
 import { WorkspaceMemberRepository } from '../repositories/workspace-memeber.repository'
 import { UsersRepository } from 'src/modules/users/repository/user.repository'
+import { MailService } from 'src/common/modules/mail/mail.service'
 
 @Injectable()
 export class WorkspaceInviteService {
