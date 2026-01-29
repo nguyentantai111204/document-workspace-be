@@ -4,6 +4,7 @@ import { Repository } from 'typeorm'
 import { Role } from 'src/modules/permission/entities/role.entity'
 import { Permission } from 'src/modules/permission/entities/permission.entity'
 import { RolePermission } from 'src/modules/permission/entities/role-permission.entity'
+import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum'
 
 @Injectable()
 export class RolePermissionSeed {
@@ -20,13 +21,15 @@ export class RolePermissionSeed {
 
     async run() {
         const map: Record<string, string[]> = {
-            USER: ['fund.join'],
+            USER: [], // Basic user might not have admin permissions
 
             ADMIN: [
-                'user.read',
-                'user.create',
-                'user.update',
-                'user.delete',
+                PermissionCode.USER_CREATE,
+                PermissionCode.USER_UPDATE,
+                PermissionCode.USER_DELETE,
+                PermissionCode.WORKSPACE_CREATE,
+                PermissionCode.WORKSPACE_UPDATE,
+                PermissionCode.WORKSPACE_DELETE,
             ],
 
             SUPER_ADMIN: ['*'],

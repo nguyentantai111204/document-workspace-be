@@ -1,14 +1,23 @@
 export enum PermissionCode {
-    USER_CREATE = 'USER_CREATE',
-    USER_UPDATE = 'USER_UPDATE',
-    USER_DELETE = 'USER_DELETE',
+    AUTH_READ = 'auth.read',
+    AUTH_UPDATE = 'auth.update',
 
-    ROLE_CREATE = 'ROLE_CREATE',
-    ROLE_UPDATE = 'ROLE_UPDATE',
+    USER_READ = 'user.read',
+    USER_CREATE = 'user.create',
+    USER_UPDATE = 'user.update',
+    USER_DELETE = 'user.delete',
 
-    PERMISSION_ASSIGN = 'PERMISSION_ASSIGN',
+    ROLE_CREATE = 'role.create',
+    ROLE_UPDATE = 'role.update',
 
-    WORK_SPACE_CREATE = 'WORK_SPACE_CREATE',
-    WORK_SPACE_UPDATE = 'WORK_SPACE_UPDATE',
-    WORK_SPACE_DELETE = 'WORK_SPACE_DELETE',
+    PERMISSION_ASSIGN = 'permission.assign',
+
+    FILE_READ = 'file.read',
+    FILE_UPLOAD = 'file.upload',
+    FILE_DELETE = 'file.delete',
+
+    WORKSPACE_READ = 'workspace.read',
+    WORKSPACE_CREATE = 'workspace.create',
+    WORKSPACE_UPDATE = 'workspace.update',
+    WORKSPACE_DELETE = 'workspace.delete',
 }

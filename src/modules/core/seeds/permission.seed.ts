@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Permission } from 'src/modules/permission/entities/permission.entity'
+import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum'
 
 @Injectable()
 export class PermissionSeed {
@@ -11,13 +12,10 @@ export class PermissionSeed {
   ) { }
 
   async run() {
-    const permissions: Partial<Permission>[] = [
-      { code: 'user.read', description: 'Xem danh sách người dùng' },
-      { code: 'user.create', description: 'Tạo người dùng' },
-      { code: 'user.update', description: 'Cập nhật người dùng' },
-      { code: 'user.delete', description: 'Xóa người dùng' },
-
-    ]
+    const permissions = Object.values(PermissionCode).map(code => ({
+      code,
+      description: this.getDescription(code),
+    }))
 
     for (const permission of permissions) {
       const exists = await this.permissionRepo.findOne({
@@ -30,5 +28,27 @@ export class PermissionSeed {
         )
       }
     }
+  }
+
+  private getDescription(code: PermissionCode): string {
+    const descriptions: Record<PermissionCode, string> = {
+      [PermissionCode.AUTH_READ]: 'Xem thông tin xác thực',
+      [PermissionCode.AUTH_UPDATE]: 'Cập nhật thông tin xác thực',
+      [PermissionCode.USER_READ]: 'Xem danh sách người dùng',
+      [PermissionCode.USER_CREATE]: 'Tạo người dùng',
+      [PermissionCode.USER_UPDATE]: 'Cập nhật người dùng',
+      [PermissionCode.USER_DELETE]: 'Xóa người dùng',
+      [PermissionCode.ROLE_CREATE]: 'Tạo vai trò',
+      [PermissionCode.ROLE_UPDATE]: 'Cập nhật vai trò',
+      [PermissionCode.PERMISSION_ASSIGN]: 'Phân quyền',
+      [PermissionCode.FILE_READ]: 'Xem tệp tin',
+      [PermissionCode.FILE_UPLOAD]: 'Tải lên tệp tin',
+      [PermissionCode.FILE_DELETE]: 'Xóa tệp tin',
+      [PermissionCode.WORKSPACE_READ]: 'Xem không gian làm việc',
+      [PermissionCode.WORKSPACE_CREATE]: 'Tạo không gian làm việc',
+      [PermissionCode.WORKSPACE_UPDATE]: 'Cập nhật không gian làm việc',
+      [PermissionCode.WORKSPACE_DELETE]: 'Xóa không gian làm việc',
+    }
+    return descriptions[code] || code
   }
 }
