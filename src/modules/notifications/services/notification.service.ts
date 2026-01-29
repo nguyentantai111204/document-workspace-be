@@ -3,12 +3,16 @@ import { NotificationRepository } from '../repositories/notification.repository'
 import { NotificationType } from '../enums/notification-type.enum'
 import { CreateNotificationDto } from '../dtos/create-notification.dto'
 import { SocketGateway } from 'src/common/modules/socket/socket.gateway'
+import { FirebaseService } from 'src/common/modules/firebase/firebase.service'
+import { UserDeviceRepository } from '../repositories/user-device.repository'
 
 @Injectable()
 export class NotificationService {
     constructor(
         private readonly notificationRepo: NotificationRepository,
         private readonly socketGateway: SocketGateway,
+        private readonly firebaseService: FirebaseService,
+        private readonly userDeviceRepo: UserDeviceRepository,
     ) { }
 
     async create(dto: CreateNotificationDto) {

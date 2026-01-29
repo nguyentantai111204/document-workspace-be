@@ -38,6 +38,7 @@
     "cloudinary": "^1.41.3",
     "cron": "^4.4.0",
     "file-type": "^21.3.0",
+    "firebase-admin": "^13.6.0",
     "handlebars": "^4.7.8",
     "helmet": "^8.1.0",
     "ioredis": "^5.9.2",

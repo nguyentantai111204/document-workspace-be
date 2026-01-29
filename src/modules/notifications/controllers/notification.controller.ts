@@ -1,15 +1,20 @@
-import { Controller, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Patch, Post, Param, Query, Body, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { NotificationService } from '../services/notification.service';
+import { RegisterDeviceDto } from '../dtos/register-device.dto';
+import { UserDeviceRepository } from '../repositories/user-device.repository';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
 @Controller('notifications')
 export class NotificationController {
-    constructor(private readonly notificationService: NotificationService) { }
+    constructor(
+        private readonly notificationService: NotificationService,
+        private readonly userDeviceRepo: UserDeviceRepository,
+    ) { }
 
     @Get()
     @ApiOperation({ summary: 'Lấy danh sách thông báo' })
@@ -29,6 +34,17 @@ export class NotificationController {
     @ApiResponse({ status: 200, description: 'Thành công' })
     readAll(@CurrentUser() user) {
         return this.notificationService.markAllAsRead(user.id);
+    }
+
+    @Post('device')
+    @ApiOperation({ summary: 'Register FCM Token cho thiết bị' })
+    @ApiBody({ type: RegisterDeviceDto })
+    @ApiResponse({ status: 201, description: 'Đăng ký thành công' })
+    registerDevice(
+        @Body() dto: RegisterDeviceDto,
+        @CurrentUser() user,
+    ) {
+        return this.userDeviceRepo.registerDevice(user.id, dto.token, dto.deviceType);
     }
 
     @Patch(':id/read')
