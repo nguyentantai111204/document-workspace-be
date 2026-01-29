@@ -35,8 +35,8 @@ export class AuthController {
     @ApiResponse({ status: 200, description: 'Đăng nhập thành công' })
     @ApiResponse({ status: 401, description: 'Email hoặc mật khẩu không đúng' })
     @ApiBody({ type: LoginDto })
-    login(@Request() req) {
-        return this.authService.login(req.user);
+    login(@Request() req, @Body() body: LoginDto) {
+        return this.authService.login(req.user, body.deviceId);
     }
 
     @Post('refresh')
