@@ -23,6 +23,21 @@ export class NotificationService {
 
         this.socketGateway.sendToUser(notification.recipientId, 'notification.new', notification);
 
+        // Send FCM
+        const tokens = await this.userDeviceRepo.getTokensByUser(notification.recipientId);
+        if (tokens.length > 0) {
+            await this.firebaseService.sendToMultipleDevices(
+                tokens,
+                notification.title,
+                notification.body,
+                {
+                    type: notification.type,
+                    notificationId: notification.id,
+                    data: JSON.stringify(notification.data || {}),
+                }
+            );
+        }
+
         return notification;
     }
 
