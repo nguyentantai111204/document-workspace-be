@@ -3,11 +3,13 @@ import { WorkspaceRole } from "../enums/workspace-role.enum"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { ListMembersQueryDto } from "../dto/workspace-member-filter.dto"
 import { WorkspaceMemberRepository } from "../repositories/workspace-memeber.repository"
+import { RedisService } from "src/common/modules/redis/redis.service"
 
 @Injectable()
 export class WorkspaceMemberService {
     constructor(
         private readonly memberRepo: WorkspaceMemberRepository,
+        private readonly redisService: RedisService,
     ) { }
 
     async addMember(
@@ -26,23 +28,32 @@ export class WorkspaceMemberService {
             )
         }
 
-        return this.memberRepo.createMember(
+        const result = await this.memberRepo.createMember(
             workspaceId,
             userId,
             role,
         )
+        await this.redisService.del(`workspace:${workspaceId}:member:${userId}`);
+        return result
     }
 
     async getUserRole(
         workspaceId: string,
         userId: string,
     ) {
+        const cacheKey = `workspace:${workspaceId}:member:${userId}`;
+        const cached = await this.redisService.getJson<any>(cacheKey);
+
+        if (cached !== null) return cached;
+
         const member = await this.memberRepo.findByWorkspaceAndUser(
             workspaceId,
             userId,
         )
 
-        return member?.role ?? null
+        const role = member?.role ?? null;
+        await this.redisService.setJson(cacheKey, role, 3600); // 1 hour
+        return role
     }
 
     async removeMember(
@@ -50,6 +61,7 @@ export class WorkspaceMemberService {
         userId: string,
     ) {
         await this.memberRepo.softRemove(workspaceId, userId)
+        await this.redisService.del(`workspace:${workspaceId}:member:${userId}`);
     }
 
     listMembers(
@@ -99,11 +111,13 @@ export class WorkspaceMemberService {
             )
         }
 
-        return this.memberRepo.updateRole(
+        const result = await this.memberRepo.updateRole(
             workspaceId,
             targetUserId,
             newRole,
         )
+        await this.redisService.del(`workspace:${workspaceId}:member:${targetUserId}`);
+        return result
     }
 
     listAll(workspaceId: string) {
@@ -153,6 +167,8 @@ export class WorkspaceMemberService {
             currentOwnerId,
             newOwnerId,
         )
+        await this.redisService.del(`workspace:${workspaceId}:member:${currentOwnerId}`);
+        await this.redisService.del(`workspace:${workspaceId}:member:${newOwnerId}`);
     }
 
 }

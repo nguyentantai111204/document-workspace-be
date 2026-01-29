@@ -5,12 +5,14 @@ import { WorkspaceMemberService } from "./workspace-member.service"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { WorkspaceQueryDto } from "../dto/workspace-filter.dto"
 import { WorkspaceRepository } from "../repositories/workspace.repository"
+import { RedisService } from "src/common/modules/redis/redis.service"
 
 @Injectable()
 export class WorkspaceService {
     constructor(
         private readonly workspaceRepo: WorkspaceRepository,
         private readonly memberService: WorkspaceMemberService,
+        private readonly redisService: RedisService,
     ) { }
 
     async createWorkspace(userId: string, name: string) {
@@ -38,7 +40,8 @@ export class WorkspaceService {
         return this.workspaceRepo.listUserWorkspaces(userId, query)
     }
 
-    updateWorkspace(workspaceId: string, name: string) {
+    async updateWorkspace(workspaceId: string, name: string) {
+        await this.redisService.del(`workspace:${workspaceId}:details`);
         return this.workspaceRepo.updateWorkspace(workspaceId, name)
     }
 
@@ -46,7 +49,15 @@ export class WorkspaceService {
         workspaceId: string,
         userId: string,
     ) {
-        const workspace = await this.workspaceRepo.findById(workspaceId)
+        const cacheKey = `workspace:${workspaceId}:details`;
+        let workspace = await this.redisService.getJson<any>(cacheKey);
+
+        if (!workspace) {
+            workspace = await this.workspaceRepo.findById(workspaceId)
+            if (workspace) {
+                await this.redisService.setJson(cacheKey, workspace, 86400); // 24 hours
+            }
+        }
 
         if (!workspace) {
             throw new BadRequestError('Workspace không tồn tại')
@@ -72,6 +83,7 @@ export class WorkspaceService {
             currentOwnerId,
             newOwnerId,
         )
+        await this.redisService.del(`workspace:${workspaceId}:details`);
     }
 
 }

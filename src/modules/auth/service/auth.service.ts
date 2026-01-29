@@ -7,6 +7,7 @@ import { calcRefreshTokenExpireTime } from 'src/common/utils/day-time.utils'
 import { KeyTokenService } from 'src/modules/key-token/service/key-token.service'
 import { RegisterDto } from '../dto/register.dto'
 import { PermissionService } from 'src/modules/permission/services/permission.service'
+import { RedisService } from 'src/common/modules/redis/redis.service'
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly keyTokenService: KeyTokenService,
-    private readonly permissionService: PermissionService
+    private readonly permissionService: PermissionService,
+    private readonly redisService: RedisService,
   ) { }
 
   async validateUser(email: string, rawPassword: string) {
@@ -81,6 +83,9 @@ export class AuthService {
   }
 
   async refresh(userId: string, refreshToken: string, deviceId?: string) {
+    const isBlacklisted = await this.redisService.get(`blacklist:token:${refreshToken}`);
+    if (isBlacklisted) throw new UnauthorizedException('Refresh token không hợp lệ (cache)');
+
     const keyToken = await this.keyTokenService.findAndVerify(
       refreshToken,
       userId,
@@ -102,7 +107,13 @@ export class AuthService {
       userId,
     )
 
-    if (keyToken) await this.keyTokenService.revoke(keyToken)
+    if (keyToken) {
+      await this.keyTokenService.revoke(keyToken)
+      const ttl = Math.ceil((keyToken.expiresAt.getTime() - Date.now()) / 1000);
+      if (ttl > 0) {
+        await this.redisService.set(`blacklist:token:${refreshToken}`, '1', ttl);
+      }
+    }
     return { success: true }
   }
 

@@ -7,7 +7,7 @@ import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { FileQueryDto } from "../dto/file-query.dto"
 import { FileRepository } from "../repositories/file.repository"
 import { UpdateFileDto } from "../dto/update-file.dto"
-import { ForbiddenError } from "src/common/exceptions/forbiden.exception"
+import { RedisService } from "src/common/modules/redis/redis.service"
 
 @Injectable()
 export class FileService {
@@ -15,6 +15,7 @@ export class FileService {
         private readonly fileRepo: FileRepository,
         private readonly storage: FileStorageService,
         private readonly validator: FileValidationService,
+        private readonly redisService: RedisService,
     ) { }
 
     async uploadMany(params: {
@@ -102,13 +103,24 @@ export class FileService {
         userId: string
         data: UpdateFileDto
     }) {
-        const file = await this.fileRepo.findOne({
-            where: {
-                id: params.fileId,
-                workspaceId: params.workspaceId,
-                status: FileStatus.ACTIVE,
-            },
-        })
+        let file = await this.redisService.getJson<any>(`file:${params.fileId}:metadata`);
+
+        if (!file) {
+            file = await this.fileRepo.findOne({
+                where: {
+                    id: params.fileId,
+                    workspaceId: params.workspaceId,
+                    status: FileStatus.ACTIVE,
+                },
+            })
+            if (file) {
+                await this.redisService.setJson(`file:${params.fileId}:metadata`, file, 86400);
+            }
+        } else {
+            if (file.workspaceId !== params.workspaceId || file.status !== FileStatus.ACTIVE) {
+                file = null;
+            }
+        }
 
         if (!file) {
             throw new BadRequestError('File không tồn tại')
@@ -130,13 +142,24 @@ export class FileService {
         workspaceId: string
         userId: string
     }) {
-        const file = await this.fileRepo.findOne({
-            where: {
-                id: params.fileId,
-                workspaceId: params.workspaceId,
-                status: FileStatus.ACTIVE,
-            },
-        })
+        let file = await this.redisService.getJson<any>(`file:${params.fileId}:metadata`);
+
+        if (!file) {
+            file = await this.fileRepo.findOne({
+                where: {
+                    id: params.fileId,
+                    workspaceId: params.workspaceId,
+                    status: FileStatus.ACTIVE,
+                },
+            })
+            if (file) {
+                await this.redisService.setJson(`file:${params.fileId}:metadata`, file, 86400);
+            }
+        } else {
+            if (file.workspaceId !== params.workspaceId || file.status !== FileStatus.ACTIVE) {
+                file = null;
+            }
+        }
 
         if (!file) {
             throw new BadRequestError('File không tồn tại')
@@ -146,7 +169,9 @@ export class FileService {
         await this.storage.delete(file.publicId, file.mimeType)
 
         file.status = FileStatus.DELETED
-        return this.fileRepo.save(file)
+        const saved = await this.fileRepo.save(file)
+        await this.redisService.del(`file:${params.fileId}:metadata`);
+        return saved;
     }
 
 }

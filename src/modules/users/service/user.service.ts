@@ -7,11 +7,14 @@ import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from "../dto/change-password.dto"
 import { KeyTokenService } from "src/modules/key-token/service/key-token.service"
 import { SearchUsersDto } from "../dto/search-users.dto"
+import { RedisService } from "src/common/modules/redis/redis.service"
+import { User } from "../entities/user.entity"
 @Injectable()
 export class UsersService {
     constructor(
         private readonly usersRepo: UsersRepository,
         private readonly keyTokenService: KeyTokenService,
+        private readonly redisService: RedisService,
     ) { }
 
     async findByEmailForAuth(email: string) {
@@ -19,8 +22,15 @@ export class UsersService {
     }
 
     async findById(id: string) {
+        const cacheKey = `user:${id}:profile`;
+        const cached = await this.redisService.getJson<User>(cacheKey);
+        if (cached) return cached;
+
         const user = await this.usersRepo.findById(id)
         if (!user) throw new BadRequestError('Không tìm thấy người dùng')
+
+        await this.redisService.setJson(cacheKey, user, 3600);
+
         return user
     }
 
@@ -63,6 +73,7 @@ export class UsersService {
         const newHash = await bcrypt.hash(dto.newPassword, 10)
 
         await this.keyTokenService.revokeAll(userId)
+        await this.redisService.del(`user:${userId}:profile`);
 
         return this.usersRepo.updatePassword(userId, newHash)
     }

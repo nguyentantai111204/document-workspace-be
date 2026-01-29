@@ -14,11 +14,13 @@ import { WorkspaceMemberRepository } from "./repositories/workspace-memeber.repo
 import { WorkspaceInviteRepository } from "./repositories/workspace-invite.repository";
 import { UsersModule } from "../users/user.module";
 import { MailModule } from "src/common/modules/mail/mail.module";
+import { RedisModule } from "src/common/modules/redis/redis.module";
+
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Workspace, WorkspaceMember, WorkspaceInvite]),
-        MailModule, UsersModule,
+        MailModule, UsersModule, RedisModule,
     ],
     controllers: [WorkspaceController, WorkspaceInviteController],
     providers: [

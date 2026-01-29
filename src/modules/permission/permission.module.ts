@@ -7,6 +7,7 @@ import { RolePermission } from './entities/role-permission.entity'
 import { PermissionService } from './services/permission.service'
 import { RoleRepository } from './repository/role.repository'
 import { UserRoleRepository } from './repository/user-role.repository'
+import { RedisModule } from 'src/common/modules/redis/redis.module'
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { UserRoleRepository } from './repository/user-role.repository'
             UserRole,
             RolePermission,
         ]),
+        RedisModule,
     ],
     providers: [PermissionService, RoleRepository, UserRoleRepository],
     exports: [PermissionService],

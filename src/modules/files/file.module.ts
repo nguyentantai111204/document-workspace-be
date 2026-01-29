@@ -9,9 +9,11 @@ import { FileController } from "./controller/file.controller";
 import { FileValidationService } from "./services/file-validation.service";
 import { WorkspaceModule } from "../workspaces/workspace.module";
 import { FileRepository } from "./repositories/file.repository";
+import { RedisModule } from "src/common/modules/redis/redis.module";
+
 
 @Module({
-    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule],
+    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule, RedisModule],
     providers: [
         CloudinaryProvider,
         {

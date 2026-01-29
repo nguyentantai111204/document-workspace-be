@@ -5,9 +5,10 @@ import { UsersRepository } from "./repository/user.repository";
 import { UsersService } from "./service/user.service";
 import { UsersController } from "./controllers/users.controller";
 import { KeyTokenModule } from "../key-token/key-token.module";
+import { RedisModule } from "src/common/modules/redis/redis.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User]), KeyTokenModule],
+    imports: [TypeOrmModule.forFeature([User]), KeyTokenModule, RedisModule],
     providers: [UsersService, UsersRepository],
     controllers: [UsersController],
     exports: [UsersService, UsersRepository], // cho Auth, Workspace
