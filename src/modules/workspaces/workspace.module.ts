@@ -15,13 +15,14 @@ import { WorkspaceInviteRepository } from "./repositories/workspace-invite.repos
 import { UsersModule } from "../users/user.module";
 import { RedisModule } from "src/common/modules/redis/redis.module";
 import { NotificationModule } from "../notifications/notification.module";
+import { PermissionModule } from "../permission/permission.module";
 
 
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Workspace, WorkspaceMember, WorkspaceInvite]),
-        NotificationModule, UsersModule, RedisModule,
+        NotificationModule, UsersModule, RedisModule, PermissionModule,
     ],
     controllers: [WorkspaceController, WorkspaceInviteController],
     providers: [

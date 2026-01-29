@@ -29,10 +29,13 @@ import { WorkspaceInviteService } from '../services/workspace-invite.service';
 import { AcceptInviteDto } from '../dto/accept-invite.dto';
 import { UpdateMemberRoleDto } from '../dto/update-member-role.dto';
 import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
+import { PermissionGuard } from 'src/modules/permission/guards/permission.guard';
+import { Permissions } from 'src/common/decorators/permission.decorator';
+import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionGuard)
 @Controller('workspaces')
 export class WorkspaceController {
     constructor(
@@ -42,6 +45,7 @@ export class WorkspaceController {
     ) { }
 
     @Post()
+    @Permissions(PermissionCode.WORKSPACE_CREATE)
     @ApiOperation({ summary: 'Tạo workspace mới' })
     @ApiBody({ type: CreateWorkspaceDto })
     @ApiResponse({ status: 201, description: 'Tạo workspace thành công' })
@@ -54,6 +58,7 @@ export class WorkspaceController {
     }
 
     @Get()
+    @Permissions(PermissionCode.WORKSPACE_READ)
     @ApiOperation({ summary: 'Lấy danh sách workspace của user' })
     @ApiQuery({ name: 'page', required: false, type: Number })
     @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -68,6 +73,7 @@ export class WorkspaceController {
 
     @UseGuards(WorkspaceGuard)
     @Get(':workspaceId')
+    @Permissions(PermissionCode.WORKSPACE_READ)
     @ApiOperation({ summary: 'Lấy thông tin chi tiết workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiResponse({ status: 200, description: 'Thông tin workspace' })
@@ -79,23 +85,11 @@ export class WorkspaceController {
         return this.workspaceService.getWorkspaceDetail(workspaceId, user.id);
     }
 
-    // @UseGuards(WorkspaceGuard, WorkspacePolicyGuard)
-    // @Post(':workspaceId/members')
-    // @WorkspaceActionPermission(WorkspaceAction.INVITE_MEMBER)
-    // @ApiOperation({ summary: 'Mời thành viên vào workspace' })
-    // @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
-    // @ApiBody({ type: InviteMemberDto })
-    // @ApiResponse({ status: 201, description: 'Mời thành viên thành công' })
-    // @ApiResponse({ status: 403, description: 'Không có quyền mời thành viên' })
-    // invite(
-    //     @Param('workspaceId') workspaceId: string,
-    //     @Body() dto: InviteMemberDto,
-    // ) {
-    //     return this.memberService.addMember(workspaceId, dto.userId, dto.role);
-    // }
+    // ... (commented out code omitted)
 
     @UseGuards(WorkspaceGuard)
     @Get(':workspaceId/members')
+    @Permissions(PermissionCode.WORKSPACE_READ)
     @ApiOperation({ summary: 'Lấy danh sách thành viên trong workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiQuery({ name: 'page', required: false, type: Number })
@@ -111,6 +105,7 @@ export class WorkspaceController {
     @Patch(':workspaceId/members/role')
     @UseGuards(WorkspaceGuard, WorkspacePolicyGuard)
     @WorkspaceActionPermission(WorkspaceAction.UPDATE_MEMBER_ROLE)
+    @Permissions(PermissionCode.WORKSPACE_UPDATE)
     updateRole(
         @Param('workspaceId') workspaceId: string,
         @CurrentUser() user,
@@ -126,6 +121,7 @@ export class WorkspaceController {
 
     @Patch(':workspaceId')
     @UseGuards(WorkspaceGuard)
+    @Permissions(PermissionCode.WORKSPACE_UPDATE)
     updateWorkspace(
         @Param('workspaceId') workspaceId: string,
         @Body() dto: UpdateWorkspaceDto,

@@ -18,17 +18,21 @@ import { FileOwnershipGuard } from "src/common/guards/file-ownership.guard";
 import { FileQueryDto } from "../dto/file-query.dto";
 import { UpdateFileDto } from "../dto/update-file.dto";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { PermissionGuard } from 'src/modules/permission/guards/permission.guard';
+import { Permissions } from 'src/common/decorators/permission.decorator';
+import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum';
 
 @ApiTags('Files')
 @ApiBearerAuth()
 @Controller('workspaces/:workspaceId/files')
-@UseGuards(AuthGuard('jwt'), WorkspaceGuard, WorkspacePolicyGuard)
+@UseGuards(AuthGuard('jwt'), PermissionGuard, WorkspaceGuard, WorkspacePolicyGuard)
 export class FileController {
     constructor(private readonly fileService: FileService) { }
 
     // upload
     @Post()
     @WorkspaceActionPermission(WorkspaceAction.UPLOAD_FILE)
+    @Permissions(PermissionCode.FILE_UPLOAD)
     @UseInterceptors(
         FileFieldsInterceptor([
             { name: 'file', maxCount: 1 },
@@ -84,6 +88,7 @@ export class FileController {
 
     // list
     @Get()
+    @Permissions(PermissionCode.FILE_READ)
     @ApiOperation({ summary: 'Lấy danh sách file trong workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiQuery({ name: 'page', required: false, type: Number })
@@ -100,6 +105,7 @@ export class FileController {
     @Get(':fileId')
     @UseGuards(FileActionGuard)
     @FileActionPermission(FileAction.READ)
+    @Permissions(PermissionCode.FILE_READ)
     @ApiOperation({ summary: 'Lấy chi tiết file' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiParam({ name: 'fileId', description: 'ID của file' })
@@ -118,6 +124,7 @@ export class FileController {
     @Patch(':fileId')
     @UseGuards(FileActionGuard, FileOwnershipGuard)
     @FileActionPermission(FileAction.UPDATE)
+    // No specific global permission for updating file metadata yet, assume allowed if own file
     @ApiOperation({ summary: 'Cập nhật thông tin file' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiParam({ name: 'fileId', description: 'ID của file cần cập nhật' })
@@ -141,6 +148,7 @@ export class FileController {
     @Delete(':fileId')
     @UseGuards(FileActionGuard, FileOwnershipGuard)
     @FileActionPermission(FileAction.DELETE)
+    @Permissions(PermissionCode.FILE_DELETE)
     @ApiOperation({ summary: 'Xóa file khỏi workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiParam({ name: 'fileId', description: 'ID của file cần xóa' })

@@ -10,10 +10,11 @@ import { FileValidationService } from "./services/file-validation.service";
 import { WorkspaceModule } from "../workspaces/workspace.module";
 import { FileRepository } from "./repositories/file.repository";
 import { RedisModule } from "src/common/modules/redis/redis.module";
+import { PermissionModule } from "../permission/permission.module";
 
 
 @Module({
-    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule, RedisModule],
+    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule, RedisModule, PermissionModule],
     providers: [
         CloudinaryProvider,
         {
