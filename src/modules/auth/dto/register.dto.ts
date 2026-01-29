@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
     @ApiProperty({
@@ -27,4 +27,12 @@ export class RegisterDto {
     @IsString()
     @IsNotEmpty()
     fullName: string;
+    @ApiProperty({
+        example: 'uuid-device-id',
+        description: 'ID thiết bị (nếu có)',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    deviceId?: string;
 }

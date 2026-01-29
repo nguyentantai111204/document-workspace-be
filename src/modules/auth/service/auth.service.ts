@@ -8,6 +8,7 @@ import { KeyTokenService } from 'src/modules/key-token/service/key-token.service
 import { RegisterDto } from '../dto/register.dto'
 import { PermissionService } from 'src/modules/permission/services/permission.service'
 import { RedisService } from 'src/common/modules/redis/redis.service'
+import { User } from 'src/modules/users/entities/user.entity'
 
 @Injectable()
 export class AuthService {
@@ -55,7 +56,7 @@ export class AuthService {
 
     await this.permissionService.assignDefaultRole(user.id)
 
-    const tokens = await this.issueTokens(user, 'register')
+    const tokens = await this.issueTokens(user, dto.deviceId)
 
     return {
       user: {
@@ -68,7 +69,7 @@ export class AuthService {
   }
 
 
-  async login(user: any, deviceId?: string) {
+  async login(user: Partial<User>, deviceId?: string) {
     const tokens = await this.issueTokens(user, deviceId)
 
     return {
