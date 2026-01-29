@@ -2,19 +2,25 @@ import { Injectable } from '@nestjs/common'
 import { NotificationRepository } from '../repositories/notification.repository'
 import { NotificationType } from '../enums/notification-type.enum'
 import { CreateNotificationDto } from '../dtos/create-notification.dto'
+import { SocketGateway } from 'src/common/modules/socket/socket.gateway'
 
 @Injectable()
 export class NotificationService {
     constructor(
         private readonly notificationRepo: NotificationRepository,
+        private readonly socketGateway: SocketGateway,
     ) { }
 
     async create(dto: CreateNotificationDto) {
-        // Here we will add socket emission logic in Phase 2
-        return this.notificationRepo.create({
+        const notification = await this.notificationRepo.create({
             ...dto,
             isRead: false,
         })
+
+        // Emit real-time event
+        this.socketGateway.sendToUser(notification.recipientId, 'notification.new', notification);
+
+        return notification;
     }
 
     async listByUser(userId: string, page: number, limit: number) {
