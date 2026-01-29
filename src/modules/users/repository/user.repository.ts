@@ -15,10 +15,20 @@ export class UsersRepository {
 
   // business / response
   findById(id: string) {
-    return this.repo.findOne({
-      where: { id },
-      select: ['id', 'email', 'fullName', 'avatarUrl', 'status'],
-    })
+    return this.repo.createQueryBuilder('user')
+      .leftJoinAndSelect('user.userRoles', 'ur')
+      .leftJoinAndSelect('ur.role', 'role')
+      .leftJoinAndSelect('role.rolePermissions', 'rp')
+      .leftJoinAndSelect('rp.permission', 'perm')
+      .where('user.id = :id', { id })
+      .select([
+        'user.id', 'user.email', 'user.fullName', 'user.avatarUrl', 'user.status',
+        'ur.roleId',
+        'role.code', 'role.description',
+        'rp.id',
+        'perm.code', 'perm.description'
+      ])
+      .getOne()
   }
 
   // business trong service

@@ -1,6 +1,7 @@
 import { BaseEntity } from "src/common/entities/base.entity"
-import { Column, Entity } from "typeorm"
+import { Column, Entity, OneToMany } from "typeorm"
 import { UserStatus } from "../enums/user-status.enum"
+import { UserRole } from "src/modules/permission/entities/user-role.entity"
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -22,5 +23,8 @@ export class User extends BaseEntity {
     default: UserStatus.ACTIVE,
   })
   status: UserStatus
+
+  @OneToMany(() => UserRole, userRole => userRole.user)
+  userRoles: UserRole[]
 }
 
