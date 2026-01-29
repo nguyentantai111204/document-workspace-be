@@ -40,14 +40,10 @@ export class PermissionSeed {
       [PermissionCode.USER_DELETE]: 'Xóa người dùng',
       [PermissionCode.ROLE_CREATE]: 'Tạo vai trò',
       [PermissionCode.ROLE_UPDATE]: 'Cập nhật vai trò',
+
       [PermissionCode.PERMISSION_ASSIGN]: 'Phân quyền',
-      [PermissionCode.FILE_READ]: 'Xem tệp tin',
-      [PermissionCode.FILE_UPLOAD]: 'Tải lên tệp tin',
-      [PermissionCode.FILE_DELETE]: 'Xóa tệp tin',
-      [PermissionCode.WORKSPACE_READ]: 'Xem không gian làm việc',
+      [PermissionCode.WORKSPACE_READ]: 'Xem danh sách không gian làm việc',
       [PermissionCode.WORKSPACE_CREATE]: 'Tạo không gian làm việc',
-      [PermissionCode.WORKSPACE_UPDATE]: 'Cập nhật không gian làm việc',
-      [PermissionCode.WORKSPACE_DELETE]: 'Xóa không gian làm việc',
     }
     return descriptions[code] || code
   }

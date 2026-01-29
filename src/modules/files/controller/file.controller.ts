@@ -32,7 +32,6 @@ export class FileController {
     // upload
     @Post()
     @WorkspaceActionPermission(WorkspaceAction.UPLOAD_FILE)
-    @Permissions(PermissionCode.FILE_UPLOAD)
     @UseInterceptors(
         FileFieldsInterceptor([
             { name: 'file', maxCount: 1 },
@@ -88,7 +87,7 @@ export class FileController {
 
     // list
     @Get()
-    @Permissions(PermissionCode.FILE_READ)
+    @WorkspaceActionPermission(WorkspaceAction.READ_FILE)
     @ApiOperation({ summary: 'Lấy danh sách file trong workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiQuery({ name: 'page', required: false, type: Number })
@@ -105,7 +104,6 @@ export class FileController {
     @Get(':fileId')
     @UseGuards(FileActionGuard)
     @FileActionPermission(FileAction.READ)
-    @Permissions(PermissionCode.FILE_READ)
     @ApiOperation({ summary: 'Lấy chi tiết file' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiParam({ name: 'fileId', description: 'ID của file' })
@@ -148,7 +146,7 @@ export class FileController {
     @Delete(':fileId')
     @UseGuards(FileActionGuard, FileOwnershipGuard)
     @FileActionPermission(FileAction.DELETE)
-    @Permissions(PermissionCode.FILE_DELETE)
+    @WorkspaceActionPermission(WorkspaceAction.DELETE_FILE)
     @ApiOperation({ summary: 'Xóa file khỏi workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiParam({ name: 'fileId', description: 'ID của file cần xóa' })

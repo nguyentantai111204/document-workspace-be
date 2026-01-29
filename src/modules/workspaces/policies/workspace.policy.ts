@@ -10,6 +10,8 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
         WorkspaceAction.UPDATE_WORKSPACE,
         WorkspaceAction.DELETE_WORKSPACE,
         WorkspaceAction.UPLOAD_FILE,
+        WorkspaceAction.READ_FILE,
+        WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
     ],
 
@@ -17,14 +19,20 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
         WorkspaceAction.INVITE_MEMBER,
         WorkspaceAction.UPDATE_MEMBER_ROLE,
         WorkspaceAction.UPLOAD_FILE,
+        WorkspaceAction.READ_FILE,
+        WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
     ],
 
     MEMBER: [
         WorkspaceAction.UPLOAD_FILE,
+        WorkspaceAction.READ_FILE,
+        WorkspaceAction.DELETE_FILE, // Restricted by FileOwnershipGuard
         WorkspaceAction.CHAT,
     ],
 
-    VIEWER: [],
+    VIEWER: [
+        WorkspaceAction.READ_FILE,
+    ],
 }
 

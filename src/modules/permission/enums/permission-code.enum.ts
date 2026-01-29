@@ -12,12 +12,6 @@ export enum PermissionCode {
 
     PERMISSION_ASSIGN = 'permission.assign',
 
-    FILE_READ = 'file.read',
-    FILE_UPLOAD = 'file.upload',
-    FILE_DELETE = 'file.delete',
-
     WORKSPACE_READ = 'workspace.read',
     WORKSPACE_CREATE = 'workspace.create',
-    WORKSPACE_UPDATE = 'workspace.update',
-    WORKSPACE_DELETE = 'workspace.delete',
 }

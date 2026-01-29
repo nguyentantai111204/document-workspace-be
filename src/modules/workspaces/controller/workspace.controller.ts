@@ -105,7 +105,6 @@ export class WorkspaceController {
     @Patch(':workspaceId/members/role')
     @UseGuards(WorkspaceGuard, WorkspacePolicyGuard)
     @WorkspaceActionPermission(WorkspaceAction.UPDATE_MEMBER_ROLE)
-    @Permissions(PermissionCode.WORKSPACE_UPDATE)
     updateRole(
         @Param('workspaceId') workspaceId: string,
         @CurrentUser() user,
@@ -121,7 +120,7 @@ export class WorkspaceController {
 
     @Patch(':workspaceId')
     @UseGuards(WorkspaceGuard)
-    @Permissions(PermissionCode.WORKSPACE_UPDATE)
+    @WorkspaceActionPermission(WorkspaceAction.UPDATE_WORKSPACE)
     updateWorkspace(
         @Param('workspaceId') workspaceId: string,
         @Body() dto: UpdateWorkspaceDto,

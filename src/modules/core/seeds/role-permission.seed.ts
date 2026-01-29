@@ -22,21 +22,16 @@ export class RolePermissionSeed {
     async run() {
         const map: Record<string, string[]> = {
             USER: [
+                PermissionCode.WORKSPACE_CREATE, // Allow user to create workspace
                 PermissionCode.WORKSPACE_READ,
-                PermissionCode.FILE_READ,
                 PermissionCode.AUTH_READ,
-                PermissionCode.AUTH_UPDATE, // Allow updating own profile
+                PermissionCode.AUTH_UPDATE,
                 PermissionCode.USER_READ,   // Allow reading user list (for search)
             ],
 
             OWNER: [
                 PermissionCode.WORKSPACE_CREATE,
-                PermissionCode.WORKSPACE_UPDATE,
-                PermissionCode.WORKSPACE_DELETE,
                 PermissionCode.WORKSPACE_READ,
-                PermissionCode.FILE_UPLOAD,
-                PermissionCode.FILE_DELETE,
-                PermissionCode.FILE_READ,
                 PermissionCode.AUTH_READ,
                 PermissionCode.AUTH_UPDATE,
                 PermissionCode.USER_READ,
@@ -47,12 +42,7 @@ export class RolePermissionSeed {
                 PermissionCode.USER_UPDATE,
                 PermissionCode.USER_DELETE,
                 PermissionCode.WORKSPACE_CREATE,
-                PermissionCode.WORKSPACE_UPDATE,
-                PermissionCode.WORKSPACE_DELETE,
                 PermissionCode.WORKSPACE_READ,
-                PermissionCode.FILE_UPLOAD,
-                PermissionCode.FILE_DELETE,
-                PermissionCode.FILE_READ,
                 PermissionCode.ROLE_CREATE,
                 PermissionCode.ROLE_UPDATE,
                 PermissionCode.PERMISSION_ASSIGN,
