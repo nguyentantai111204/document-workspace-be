@@ -26,7 +26,7 @@ export class UsersService {
             const user = await this.usersRepo.findById(id)
             if (!user) throw new BadRequestError('Không tìm thấy người dùng')
             return user
-        });
+        }, User);
     }
 
     async create(dto: CreateUserDto) {

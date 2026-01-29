@@ -8,6 +8,7 @@ import { FileQueryDto } from "../dto/file-query.dto"
 import { FileRepository } from "../repositories/file.repository"
 import { UpdateFileDto } from "../dto/update-file.dto"
 import { RedisService } from "src/common/modules/redis/redis.service"
+import { FileEntity } from "../entities/file.entity"
 
 @Injectable()
 export class FileService {
@@ -108,7 +109,7 @@ export class FileService {
                     status: FileStatus.ACTIVE,
                 },
             })
-        });
+        }, FileEntity);
 
         if (!file) {
             throw new BadRequestError('File không tồn tại')

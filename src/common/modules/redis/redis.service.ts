@@ -1,5 +1,6 @@
 import { Injectable, Inject, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { ClassConstructor, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -41,11 +42,17 @@ export class RedisService implements OnModuleDestroy {
         }
     }
 
-    async getJson<T>(key: string): Promise<T | null> {
+    async getJson<T>(key: string, cls?: ClassConstructor<T>): Promise<T | null> {
         try {
             const value = await this.redis.get(key);
             if (!value) return null;
-            return JSON.parse(value) as T;
+
+            const parsed = JSON.parse(value);
+            if (cls) {
+                return plainToInstance(cls, parsed);
+            }
+
+            return parsed as T;
         } catch (error) {
             this.logger.error(`Redis getJson error for key ${key}: ${error.message}`);
             return null;
@@ -69,8 +76,9 @@ export class RedisService implements OnModuleDestroy {
         key: string,
         ttl: number,
         callback: () => Promise<T>,
+        cls?: ClassConstructor<T>,
     ): Promise<T> {
-        const cached = await this.getJson<T>(key);
+        const cached = await this.getJson<T>(key, cls);
         if (cached !== null) {
             return cached;
         }

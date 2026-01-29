@@ -6,6 +6,7 @@ import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { WorkspaceQueryDto } from "../dto/workspace-filter.dto"
 import { WorkspaceRepository } from "../repositories/workspace.repository"
 import { RedisService } from "src/common/modules/redis/redis.service"
+import { Workspace } from "../entities/workspace.entity"
 
 @Injectable()
 export class WorkspaceService {
@@ -51,10 +52,9 @@ export class WorkspaceService {
     ) {
         const workspace = await this.redisService.remember(`workspace:${workspaceId}:details`, 86400, async () => {
             return this.workspaceRepo.findById(workspaceId)
-        });
+        }, Workspace);
 
         if (!workspace) {
-            // Note: If remember returns null (callback returns null), we handle it here
             throw new BadRequestError('Workspace không tồn tại')
         }
 
