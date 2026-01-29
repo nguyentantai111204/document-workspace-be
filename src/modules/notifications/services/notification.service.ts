@@ -17,7 +17,6 @@ export class NotificationService {
             isRead: false,
         })
 
-        // Emit real-time event
         this.socketGateway.sendToUser(notification.recipientId, 'notification.new', notification);
 
         return notification;
