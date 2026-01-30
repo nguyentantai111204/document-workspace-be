@@ -38,6 +38,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const secret = this.configService.get<string>('jwt.secret');
             const payload = this.jwtService.verify(token, { secret });
 
+            // nếu user có dùng nhiều thiết bị cũng sẽ vào cùng một room
             client.join(`user:${payload.sub}`);
             this.logger.log(`Client ${client.id} connected. User: ${payload.sub}`);
 
