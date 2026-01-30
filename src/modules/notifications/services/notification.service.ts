@@ -23,6 +23,8 @@ export class NotificationService {
 
         this.socketGateway.sendToUser(notification.recipientId, 'notification.new', notification);
 
+        await this.sendUnreadCount(notification.recipientId);
+
         // Send FCM
         const tokens = await this.userDeviceRepo.getTokensByUser(notification.recipientId);
         if (tokens.length > 0) {
@@ -54,10 +56,23 @@ export class NotificationService {
     }
 
     async markAsRead(id: string, userId: string) {
-        return this.notificationRepo.markAsRead(id, userId)
+        await this.notificationRepo.markAsRead(id, userId)
+        await this.sendUnreadCount(userId);
+        return { success: true }
     }
 
     async markAllAsRead(userId: string) {
-        return this.notificationRepo.markAllAsRead(userId)
+        await this.notificationRepo.markAllAsRead(userId)
+        await this.sendUnreadCount(userId);
+        return { success: true }
+    }
+
+    async sendUnreadCount(userId: string) {
+        const unreadCount = await this.notificationRepo.countUnread(userId);
+        this.socketGateway.sendToUser(userId, 'notification.unreadCount', { unreadCount });
+    }
+
+    async getUnreadCount(userId: string) {
+        return this.notificationRepo.countUnread(userId);
     }
 }

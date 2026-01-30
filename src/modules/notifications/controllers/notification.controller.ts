@@ -29,6 +29,13 @@ export class NotificationController {
         return this.notificationService.listByUser(user.id, Number(page), Number(limit));
     }
 
+    @Get('unread-count')
+    @ApiOperation({ summary: 'Lấy số lượng thông báo chưa đọc' })
+    @ApiResponse({ status: 200, description: 'Số lượng thông báo chưa đọc' })
+    getUnreadCount(@CurrentUser() user) {
+        return this.notificationService.getUnreadCount(user.id);
+    }
+
     @Patch('read-all')
     @ApiOperation({ summary: 'Đánh dấu tất cả là đã đọc' })
     @ApiResponse({ status: 200, description: 'Thành công' })

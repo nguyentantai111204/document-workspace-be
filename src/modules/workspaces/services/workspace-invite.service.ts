@@ -14,6 +14,7 @@ import { WorkspaceMemberRepository } from '../repositories/workspace-memeber.rep
 import { UsersRepository } from 'src/modules/users/repository/user.repository'
 import { NotificationService } from 'src/modules/notifications/services/notification.service'
 import { NotificationType } from 'src/modules/notifications/enums/notification-type.enum'
+import { WorkspaceRepository } from '../repositories/workspace.repository'
 
 
 @Injectable()
@@ -22,6 +23,7 @@ export class WorkspaceInviteService {
         private readonly inviteRepo: WorkspaceInviteRepository,
         private readonly memberRepo: WorkspaceMemberRepository,
         private readonly userRepo: UsersRepository,
+        private readonly workspaceRepo: WorkspaceRepository,
         private readonly notificationService: NotificationService,
     ) { }
 
@@ -69,33 +71,30 @@ export class WorkspaceInviteService {
 
         await this.inviteRepo.save(invite)
 
-        await this.notificationService.create({
-            recipientId: user ? user.id : 'guest', // If user exists, notify them. If guest, we might skip or handle differently (but here we assume existing user mostly)
-            senderId: inviterId,
-            type: NotificationType.INVITE,
-            title: 'Lời mời tham gia Workspace',
-            body: `Bạn đã được mời tham gia vào workspace.`,
-            data: {
-                workspaceId,
-                inviteToken: token,
-                role
-            }
-        })
-
-        // Note: For Guest (email not in system), real-time notification won't work as they don't have ID. 
-        // We only support notifying existing users via this system. 
-        // If "user" is found above (line 32), we have ID. If not, we can't notify via socket/db. 
-        // Logic refinement: Only notify if user exists.
-
         if (user) {
-            // Already handled by create above if we pass correct recipientId
-        } else {
-            // If user doesn't exist, we can't notify them via system. 
-            // Since we removed email, this flow is dead for non-existing users. 
-            // We should arguably throw error or warn, but for now complying with "remove mail, use notification".
+            const workspace = await this.workspaceRepo.findById(workspaceId)
+            const inviter = await this.userRepo.findById(inviterId)
+
+            if (workspace && inviter) {
+                await this.notificationService.create({
+                    recipientId: user.id,
+                    senderId: inviterId,
+                    type: NotificationType.INVITE,
+                    title: 'Lời mời tham gia Workspace',
+                    body: `${inviter.fullName} đã mời bạn tham gia workspace "${workspace.name}"`,
+                    data: {
+                        workspaceId,
+                        workspaceName: workspace.name,
+                        inviteToken: token,
+                        role,
+                        inviterName: inviter.fullName,
+                        inviterId,
+                    }
+                })
+            }
         }
 
-        return { success: true }
+        return { success: true, inviteToken: token }
     }
 
     async acceptInvite(token: string, userId: string) {
@@ -125,6 +124,23 @@ export class WorkspaceInviteService {
 
         invite.status = WorkspaceInviteStatus.ACCEPTED
         await this.inviteRepo.save(invite)
+
+        const workspace = await this.workspaceRepo.findById(invite.workspaceId)
+        if (workspace) {
+            await this.notificationService.create({
+                recipientId: invite.invitedBy,
+                senderId: userId,
+                type: NotificationType.WORKSPACE,
+                title: 'Lời mời được chấp nhận',
+                body: `${user.fullName} đã chấp nhận lời mời tham gia workspace "${workspace.name}"`,
+                data: {
+                    workspaceId: invite.workspaceId,
+                    workspaceName: workspace.name,
+                    memberId: userId,
+                    memberName: user.fullName,
+                }
+            })
+        }
 
         return { workspaceId: invite.workspaceId }
     }
