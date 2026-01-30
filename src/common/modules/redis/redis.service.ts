@@ -16,7 +16,7 @@ export class RedisService implements OnModuleDestroy {
         try {
             return await this.redis.get(key);
         } catch (error) {
-            this.logger.error(`Redis get error for key ${key}: ${error.message}`);
+            this.logger.warn(`Redis unavailable for key ${key}, using fallback`);
             return null;
         }
     }
@@ -28,7 +28,7 @@ export class RedisService implements OnModuleDestroy {
             }
             return await this.redis.set(key, value);
         } catch (error) {
-            this.logger.error(`Redis set error for key ${key}: ${error.message}`);
+            this.logger.warn(`Redis unavailable, skipping cache set for key ${key}`);
             return null;
         }
     }
@@ -37,7 +37,7 @@ export class RedisService implements OnModuleDestroy {
         try {
             return await this.redis.del(key);
         } catch (error) {
-            this.logger.error(`Redis del error for key ${key}: ${error.message}`);
+            this.logger.warn(`Redis unavailable, skipping cache del for key ${key}`);
             return 0;
         }
     }
@@ -54,7 +54,7 @@ export class RedisService implements OnModuleDestroy {
 
             return parsed as T;
         } catch (error) {
-            this.logger.error(`Redis getJson error for key ${key}: ${error.message}`);
+            this.logger.warn(`Redis unavailable for key ${key}, using fallback`);
             return null;
         }
     }
@@ -67,7 +67,7 @@ export class RedisService implements OnModuleDestroy {
             }
             return await this.redis.set(key, jsonValue);
         } catch (error) {
-            this.logger.error(`Redis setJson error for key ${key}: ${error.message}`);
+            this.logger.warn(`Redis unavailable, skipping cache set for key ${key}`);
             return null;
         }
     }
