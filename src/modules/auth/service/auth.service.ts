@@ -85,7 +85,9 @@ export class AuthService {
 
   async refresh(userId: string, refreshToken: string, deviceId?: string) {
     const isBlacklisted = await this.redisService.get(`blacklist:token:${refreshToken}`);
-    if (isBlacklisted) throw new UnauthorizedException('Refresh token không hợp lệ (cache)');
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Refresh token không hợp lệ (blacklist)');
+    }
 
     const keyToken = await this.keyTokenService.findAndVerify(
       refreshToken,
@@ -110,9 +112,10 @@ export class AuthService {
 
     if (keyToken) {
       await this.keyTokenService.revoke(keyToken)
+
       const ttl = Math.ceil((keyToken.expiresAt.getTime() - Date.now()) / 1000);
       if (ttl > 0) {
-        await this.redisService.set(`blacklist:token:${refreshToken}`, '1', ttl);
+        const result = await this.redisService.set(`blacklist:token:${refreshToken}`, '1', ttl);
       }
     }
     return { success: true }

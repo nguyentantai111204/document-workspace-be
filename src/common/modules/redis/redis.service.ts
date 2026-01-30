@@ -77,19 +77,30 @@ export class RedisService implements OnModuleDestroy {
         ttl: number,
         callback: () => Promise<T>,
         cls?: ClassConstructor<T>,
+        fallbackToDb: boolean = true,
     ): Promise<T> {
-        const cached = await this.getJson<T>(key, cls);
-        if (cached !== null) {
-            return cached;
+        try {
+            const cached = await this.getJson<T>(key, cls);
+            if (cached !== null) {
+                return cached;
+            }
+
+            const value = await callback();
+
+            if (value !== undefined) {
+                await this.setJson(key, value, ttl);
+            }
+
+            return value;
+        } catch (error) {
+            if (fallbackToDb) {
+                this.logger.warn(
+                    `Redis error for key ${key}, falling back to database: ${error.message}`,
+                );
+                return await callback();
+            }
+            throw error;
         }
-
-        const value = await callback();
-
-        if (value !== undefined) {
-            await this.setJson(key, value, ttl);
-        }
-
-        return value;
     }
 
     getClient(): Redis {

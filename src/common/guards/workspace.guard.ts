@@ -1,16 +1,15 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { WorkspaceMember } from "src/modules/workspaces/entities/workspace-member.entity"
-import { Repository } from "typeorm"
-import { ForbiddenError } from "../exceptions/forbiden.exception"
+import { WorkspaceMemberService } from "src/modules/workspaces/services/workspace-member.service"
 import { Workspace } from "src/modules/workspaces/entities/workspace.entity"
 import { NotFoundError } from "../exceptions/not-found.exception"
+import { Repository } from "typeorm"
+import { ForbiddenError } from "../exceptions/forbiden.exception"
 
 @Injectable()
 export class WorkspaceGuard implements CanActivate {
     constructor(
-        @InjectRepository(WorkspaceMember)
-        private readonly memberRepo: Repository<WorkspaceMember>,
+        private readonly memberService: WorkspaceMemberService,
         @InjectRepository(Workspace)
         private readonly workspaceRepo: Repository<Workspace>,
     ) { }
@@ -32,13 +31,11 @@ export class WorkspaceGuard implements CanActivate {
             throw new NotFoundError('Workspace không tồn tại')
         }
 
-        const member = await this.memberRepo.findOne({
-            where: { workspaceId, userId: user.id },
-        })
+        const role = await this.memberService.getUserRole(workspaceId, user.id)
 
-        if (!member) throw new ForbiddenError('Bạn không có quyền truy cập')
+        if (!role) throw new ForbiddenError('Bạn không có quyền truy cập')
 
-        req.workspaceRole = member.role
+        req.workspaceRole = role
         req.workspaceId = workspaceId
 
         return true
