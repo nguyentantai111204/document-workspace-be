@@ -103,6 +103,44 @@ export class RedisService implements OnModuleDestroy {
         }
     }
 
+    // Redis SET operations for chat online status
+    async sadd(key: string, ...members: string[]): Promise<number> {
+        try {
+            return await this.redis.sadd(key, ...members);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, skipping sadd for key ${key}`);
+            return 0;
+        }
+    }
+
+    async srem(key: string, ...members: string[]): Promise<number> {
+        try {
+            return await this.redis.srem(key, ...members);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, skipping srem for key ${key}`);
+            return 0;
+        }
+    }
+
+    async smembers(key: string): Promise<string[]> {
+        try {
+            return await this.redis.smembers(key);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, returning empty set for key ${key}`);
+            return [];
+        }
+    }
+
+    async sismember(key: string, member: string): Promise<boolean> {
+        try {
+            const result = await this.redis.sismember(key, member);
+            return result === 1;
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, returning false for sismember ${key}`);
+            return false;
+        }
+    }
+
     getClient(): Redis {
         return this.redis;
     }

@@ -15,6 +15,7 @@ import { RedisModule } from "src/common/modules/redis/redis.module";
 import { NotificationModule } from "../notifications/notification.module";
 import { SocketModule } from "src/common/modules/socket/socket.module";
 import { FirebaseModule } from "src/common/modules/firebase/firebase.module";
+import { ChatModule } from "../chat/chat.module";
 
 
 
@@ -23,7 +24,7 @@ import { FirebaseModule } from "src/common/modules/firebase/firebase.module";
 @Module({
   imports: [
     AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,
-    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule, RedisModule, NotificationModule, SocketModule, FirebaseModule],
+    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule, RedisModule, NotificationModule, SocketModule, FirebaseModule, ChatModule],
   providers: [
     {
       provide: APP_FILTER,
