@@ -11,16 +11,22 @@ export class FirebaseService implements OnModuleInit {
 
     onModuleInit() {
         try {
-            const serviceAccountPath = this.configService.get<string>('firebase.credentialPath');
+            const projectId = this.configService.get<string>('firebase.projectId');
+            const privateKey = this.configService.get<string>('firebase.privateKey');
+            const clientEmail = this.configService.get<string>('firebase.clientEmail');
 
-            if (serviceAccountPath) {
+            if (projectId && privateKey && clientEmail) {
                 admin.initializeApp({
-                    credential: admin.credential.cert(require(serviceAccountPath)),
+                    credential: admin.credential.cert({
+                        projectId,
+                        privateKey,
+                        clientEmail,
+                    }),
                 });
                 this.authorized = true;
                 this.logger.log('Firebase Admin initialized successfully');
             } else {
-                this.logger.warn('Firebase Credential not found. FCM will be disabled.');
+                this.logger.warn('Firebase credentials not found. FCM will be disabled.');
             }
         } catch (error) {
             this.logger.error(`Failed to initialize Firebase: ${error.message}`);
