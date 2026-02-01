@@ -42,15 +42,16 @@ export class WorkspaceService {
     }
 
     async updateWorkspace(workspaceId: string, name: string) {
-        await this.redisService.del(`workspace:${workspaceId}:details`);
-        return this.workspaceRepo.updateWorkspace(workspaceId, name)
+        const result = await this.workspaceRepo.updateWorkspace(workspaceId, name)
+        await this.redisService.del(`workspaces:detail:${workspaceId}`);
+        return result
     }
 
     async getWorkspaceDetail(
         workspaceId: string,
         userId: string,
     ) {
-        const workspace = await this.redisService.remember(`workspace:${workspaceId}:details`, 86400, async () => {
+        const workspace = await this.redisService.remember(`workspaces:detail:${workspaceId}`, 86400, async () => {
             return this.workspaceRepo.findById(workspaceId)
         }, Workspace);
 
@@ -79,7 +80,7 @@ export class WorkspaceService {
             currentOwnerId,
             newOwnerId,
         )
-        await this.redisService.del(`workspace:${workspaceId}:details`);
+        await this.redisService.del(`workspaces:detail:${workspaceId}`);
     }
 
 }

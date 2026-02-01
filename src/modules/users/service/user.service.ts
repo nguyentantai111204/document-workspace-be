@@ -22,7 +22,7 @@ export class UsersService {
     }
 
     async findById(id: string) {
-        return this.redisService.remember(`user:${id}:profile`, 3600, async () => {
+        return this.redisService.remember(`users:profile:${id}`, 3600, async () => {
             const user = await this.usersRepo.findById(id)
             if (!user) throw new BadRequestError('Không tìm thấy người dùng')
             return user
@@ -68,9 +68,11 @@ export class UsersService {
         const newHash = await bcrypt.hash(dto.newPassword, 10)
 
         await this.keyTokenService.revokeAll(userId)
-        await this.redisService.del(`user:${userId}:profile`);
 
-        return this.usersRepo.updatePassword(userId, newHash)
+        const result = await this.usersRepo.updatePassword(userId, newHash)
+        await this.redisService.del(`users:profile:${userId}`);
+
+        return result
     }
 }
 

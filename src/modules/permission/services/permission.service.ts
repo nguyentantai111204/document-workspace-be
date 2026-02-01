@@ -12,7 +12,7 @@ export class PermissionService {
     ) { }
 
     async getPermissionsByUser(userId: string): Promise<string[]> {
-        return this.redisService.remember(`user:${userId}:permissions`, 3600, async () => {
+        return this.redisService.remember(`permissions:user_list:${userId}`, 3600, async () => {
             const userRoles = await this.userRoleRepo.findByUserIdWithPermissions(userId)
 
             const permissions = new Set<string>()
@@ -32,7 +32,7 @@ export class PermissionService {
         if (!role) throw new Error('Default role USER not found')
 
         await this.userRoleRepo.assignRole(userId, role.id)
-        await this.redisService.del(`user:${userId}:permissions`);
+        await this.redisService.del(`permissions:user_list:${userId}`);
     }
 }
 

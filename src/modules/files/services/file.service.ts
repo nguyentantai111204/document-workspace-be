@@ -101,7 +101,7 @@ export class FileService {
         fileId: string
         workspaceId: string
     }) {
-        const file = await this.redisService.remember(`file:${params.fileId}:metadata`, 86400, async () => {
+        const file = await this.redisService.remember(`files:metadata:${params.fileId}`, 86400, async () => {
             return this.fileRepo.findOne({
                 where: {
                     id: params.fileId,
@@ -116,7 +116,7 @@ export class FileService {
         }
 
         if (file.workspaceId !== params.workspaceId || file.status !== FileStatus.ACTIVE) {
-            await this.redisService.del(`file:${params.fileId}:metadata`);
+            await this.redisService.del(`files:metadata:${params.fileId}`);
             throw new BadRequestError('File không tồn tại (cache mismatch)')
         }
 
@@ -151,7 +151,7 @@ export class FileService {
 
         const saved = await this.fileRepo.save(file)
 
-        await this.redisService.del(`file:${params.fileId}:metadata`);
+        await this.redisService.del(`files:metadata:${params.fileId}`);
 
         return saved
     }
@@ -182,7 +182,7 @@ export class FileService {
         const saved = await this.fileRepo.save(file)
 
         // Invalidate cache sau khi delete
-        await this.redisService.del(`file:${params.fileId}:metadata`);
+        await this.redisService.del(`files:metadata:${params.fileId}`);
 
         return saved;
     }

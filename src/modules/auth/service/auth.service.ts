@@ -84,7 +84,7 @@ export class AuthService {
   }
 
   async refresh(userId: string, refreshToken: string, deviceId?: string) {
-    const isBlacklisted = await this.redisService.get(`blacklist:token:${refreshToken}`);
+    const isBlacklisted = await this.redisService.get(`auth:blacklist:${refreshToken}`);
     if (isBlacklisted) {
       throw new UnauthorizedException('Refresh token không hợp lệ (blacklist)');
     }
@@ -115,7 +115,7 @@ export class AuthService {
 
       const ttl = Math.ceil((keyToken.expiresAt.getTime() - Date.now()) / 1000);
       if (ttl > 0) {
-        const result = await this.redisService.set(`blacklist:token:${refreshToken}`, '1', ttl);
+        const result = await this.redisService.set(`auth:blacklist:${refreshToken}`, '1', ttl);
       }
     }
     return { success: true }
