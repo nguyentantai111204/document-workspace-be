@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, In, IsNull } from 'typeorm'
+import { Repository, In, IsNull, Brackets } from 'typeorm'
 import { Conversation } from '../entities/conversation.entity'
 import { ConversationType } from '../enums/conversation-type.enum'
 import { ConversationQueryDto } from '../dto/conversation-query.dto'
@@ -59,7 +59,7 @@ export class ConversationRepository {
         workspaceId: string,
         query: ConversationQueryDto,
     ): Promise<PaginatedResponse<Conversation>> {
-        const { page = 1, limit = 20 } = query
+        const { page = 1, limit = 20, search } = query
         const skip = (page - 1) * limit
 
         const qb = this.repo
@@ -72,7 +72,18 @@ export class ConversationRepository {
             )
             .where('c.workspace_id = :workspaceId', { workspaceId })
             .andWhere('c.deletedAt IS NULL')
-            .orderBy('c.lastMessageAt', 'DESC')
+
+        if (search) {
+            qb.leftJoin('conversation_participants', 'search_cp', 'search_cp.conversation_id = c.id')
+                .leftJoin('users', 'search_user', 'search_user.id = search_cp.user_id')
+                .andWhere(new Brackets((qb) => {
+                    qb.where('c.name ILIKE :search', { search: `%${search}%` })
+                        .orWhere('search_user.fullName ILIKE :search', { search: `%${search}%` })
+                        .orWhere('search_user.email ILIKE :search', { search: `%${search}%` })
+                }))
+        }
+
+        qb.orderBy('c.lastMessageAt', 'DESC')
             .addOrderBy('c.createdAt', 'DESC')
             .skip(skip)
             .take(limit)

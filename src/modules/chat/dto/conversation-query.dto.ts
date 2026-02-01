@@ -1,7 +1,11 @@
-import { IsOptional, IsInt, Min, Max } from 'class-validator'
+import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator'
 import { Type } from 'class-transformer'
 
 export class ConversationQueryDto {
+    @IsOptional()
+    @IsString()
+    search?: string
+
     @IsOptional()
     @Type(() => Number)
     @IsInt()
