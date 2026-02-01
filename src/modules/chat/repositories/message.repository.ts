@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, LessThan, IsNull } from 'typeorm'
+import { Repository, IsNull } from 'typeorm'
 import { Message } from '../entities/message.entity'
+import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interface'
+import { buildPaginationMeta } from 'src/common/utils/pagination.utils'
 
 @Injectable()
 export class MessageRepository {
@@ -21,28 +23,25 @@ export class MessageRepository {
 
     async getMessages(
         conversationId: string,
+        page: number = 1,
         limit: number = 50,
-        cursor?: string,
-    ): Promise<Message[]> {
+    ): Promise<PaginatedResponse<Message>> {
+        const skip = (page - 1) * limit
+
         const qb = this.repo
             .createQueryBuilder('m')
             .where('m.conversation_id = :conversationId', { conversationId })
             .andWhere('m.deletedAt IS NULL')
-
-        if (cursor) {
-            // Cursor-based pagination: get messages older than cursor
-            const cursorMessage = await this.findById(cursor)
-            if (cursorMessage) {
-                qb.andWhere('m.created_at < :cursorDate', {
-                    cursorDate: cursorMessage.createdAt,
-                })
-            }
-        }
-
-        return qb
-            .orderBy('m.created_at', 'DESC')
+            .orderBy('m.createdAt', 'DESC')
+            .skip(skip)
             .take(limit)
-            .getMany()
+
+        const [items, total] = await qb.getManyAndCount()
+
+        return {
+            items,
+            meta: buildPaginationMeta(page, limit, total),
+        }
     }
 
     async getUnreadMessages(
@@ -67,9 +66,12 @@ export class MessageRepository {
         userId: string,
         workspaceId: string,
         searchTerm: string,
+        page: number = 1,
         limit: number = 20,
-    ): Promise<Message[]> {
-        return this.repo
+    ): Promise<PaginatedResponse<Message>> {
+        const skip = (page - 1) * limit
+
+        const qb = this.repo
             .createQueryBuilder('m')
             .innerJoin('conversations', 'c', 'c.id = m.conversation_id')
             .innerJoin(
@@ -81,8 +83,15 @@ export class MessageRepository {
             .where('c.workspace_id = :workspaceId', { workspaceId })
             .andWhere('m.content ILIKE :search', { search: `%${searchTerm}%` })
             .andWhere('m.deletedAt IS NULL')
-            .orderBy('m.created_at', 'DESC')
+            .orderBy('m.createdAt', 'DESC')
+            .skip(skip)
             .take(limit)
-            .getMany()
+
+        const [items, total] = await qb.getManyAndCount()
+
+        return {
+            items,
+            meta: buildPaginationMeta(page, limit, total),
+        }
     }
 }

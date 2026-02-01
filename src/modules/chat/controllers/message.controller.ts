@@ -28,8 +28,8 @@ export class MessageController {
         return this.messageService.getMessages(
             conversationId,
             userId,
+            query.page,
             query.limit,
-            query.cursor,
         )
     }
 
@@ -77,12 +77,14 @@ export class MessageController {
         @Param('workspaceId') workspaceId: string,
         @CurrentUser('id') userId: string,
         @Query('q') searchTerm: string,
+        @Query('page') page?: number,
         @Query('limit') limit?: number,
     ) {
         return this.messageService.searchMessages(
             userId,
             workspaceId,
             searchTerm,
+            page ? parseInt(page.toString()) : 1,
             limit ? parseInt(limit.toString()) : 20,
         )
     }

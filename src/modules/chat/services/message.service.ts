@@ -77,8 +77,8 @@ export class MessageService {
     async getMessages(
         conversationId: string,
         userId: string,
+        page: number = 1,
         limit: number = 50,
-        cursor?: string,
     ) {
         // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
@@ -90,13 +90,7 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant')
         }
 
-        const messages = await this.messageRepo.getMessages(conversationId, limit, cursor)
-
-        return {
-            messages,
-            hasMore: messages.length === limit,
-            nextCursor: messages.length > 0 ? messages[messages.length - 1].id : null,
-        }
+        return this.messageRepo.getMessages(conversationId, page, limit)
     }
 
     async markAsRead(messageId: string, userId: string) {
@@ -164,9 +158,10 @@ export class MessageService {
         userId: string,
         workspaceId: string,
         searchTerm: string,
+        page: number = 1,
         limit: number = 20,
     ) {
-        return this.messageRepo.searchMessages(userId, workspaceId, searchTerm, limit)
+        return this.messageRepo.searchMessages(userId, workspaceId, searchTerm, page, limit)
     }
 
     // Private methods

@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator'
+import { IsOptional, IsInt, Min, Max } from 'class-validator'
 import { Type } from 'class-transformer'
 
 export class GetMessagesDto {
@@ -6,10 +6,12 @@ export class GetMessagesDto {
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    @Max(100)
-    limit?: number = 50
+    page?: number = 1
 
     @IsOptional()
-    @IsString()
-    cursor?: string // lastMessageId for pagination
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    @Max(100)
+    limit?: number = 50
 }
