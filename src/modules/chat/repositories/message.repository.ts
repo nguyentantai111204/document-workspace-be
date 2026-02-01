@@ -32,7 +32,7 @@ export class MessageRepository {
             .createQueryBuilder('m')
             .where('m.conversation_id = :conversationId', { conversationId })
             .andWhere('m.deletedAt IS NULL')
-            .orderBy('m.createdAt', 'DESC')
+            .orderBy('m.createdAt', 'ASC')
             .skip(skip)
             .take(limit)
 

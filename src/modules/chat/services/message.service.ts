@@ -80,7 +80,6 @@ export class MessageService {
         page: number = 1,
         limit: number = 50,
     ) {
-        // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
