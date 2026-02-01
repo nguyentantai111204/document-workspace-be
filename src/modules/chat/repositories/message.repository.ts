@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository, IsNull } from 'typeorm'
+import { Repository, IsNull, MoreThan } from 'typeorm'
 import { Message } from '../entities/message.entity'
 import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interface'
 import { buildPaginationMeta } from 'src/common/utils/pagination.utils'
@@ -93,5 +93,23 @@ export class MessageRepository {
             items,
             meta: buildPaginationMeta(page, limit, total),
         }
+    }
+    async getMessagesSince(
+        conversationId: string,
+        lastMessageId: string,
+        limit: number = 100,
+    ): Promise<Message[]> {
+        const lastMessage = await this.findById(lastMessageId)
+        if (!lastMessage) return []
+
+        return this.repo.find({
+            where: {
+                conversationId,
+                createdAt: MoreThan(lastMessage.createdAt),
+                deletedAt: IsNull(),
+            },
+            order: { createdAt: 'ASC' },
+            take: limit,
+        })
     }
 }

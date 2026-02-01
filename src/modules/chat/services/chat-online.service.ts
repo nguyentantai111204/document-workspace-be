@@ -6,11 +6,14 @@ export class ChatOnlineService {
     constructor(private readonly redisService: RedisService) { }
 
     async setUserOnline(userId: string, socketId: string) {
-        await this.redisService.sadd('chat:online_users', userId)
+        await this.setUserPresence(userId)
 
         await this.redisService.set(`chat:socket:${socketId}`, userId)
-
         await this.redisService.sadd(`chat:user_sockets:${userId}`, socketId)
+    }
+
+    async setUserPresence(userId: string) {
+        await this.redisService.set(`chat:presence:${userId}`, '1', 60)
     }
 
     async setUserOffline(userId: string, socketId: string) {
@@ -18,28 +21,28 @@ export class ChatOnlineService {
 
         await this.redisService.srem(`chat:user_sockets:${userId}`, socketId)
 
-        const remainingSockets = await this.redisService.smembers(`chat:user_sockets:${userId}`)
-
-        if (!remainingSockets || remainingSockets.length === 0) {
-            await this.redisService.srem('chat:online_users', userId)
-            await this.redisService.del(`chat:user_sockets:${userId}`)
-        }
+        // We do NOT remove `chat:presence:{userId}` immediately.
+        // Let TTL expire naturally to handle distinct device disconnections gracefully.
     }
 
     async isUserOnline(userId: string): Promise<boolean> {
-        return this.redisService.sismember('chat:online_users', userId)
+        const presence = await this.redisService.get(`chat:presence:${userId}`)
+        return !!presence
     }
 
     async getOnlineUsers(userIds: string[]): Promise<string[]> {
-        const onlineStatus = await Promise.all(
-            userIds.map(id => this.isUserOnline(id)),
-        )
+        if (!userIds || userIds.length === 0) return []
 
-        return userIds.filter((_, index) => onlineStatus[index])
+        const keys = userIds.map(id => `chat:presence:${id}`)
+        const results = await this.redisService.mget(keys)
+
+        return userIds.filter((_, index) => results[index] !== null)
     }
 
+    // Deprecated: No longer maintaining a global set of online users
+    // If needed, would require SCAN or keeping the set (but handling Sync issues)
     async getAllOnlineUsers(): Promise<string[]> {
-        return this.redisService.smembers('chat:online_users')
+        return []
     }
 
     async getUserSocketIds(userId: string): Promise<string[]> {

@@ -61,6 +61,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const userId = payload.sub
 
             await this.chatOnlineService.setUserOnline(userId, client.id)
+            await this.chatOnlineService.setUserPresence(userId)
 
             client.join(`user:${userId}`)
 
@@ -72,6 +73,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.logger.error(`Connection unauthorized: ${error.message}`)
             client.disconnect()
         }
+    }
+
+    @SubscribeMessage('heartbeat')
+    async handleHeartbeat(@ConnectedSocket() client: AuthenticatedSocket) {
+        const userId = client.data.user.sub
+        await this.chatOnlineService.setUserPresence(userId)
+        return { success: true }
     }
 
     async handleDisconnect(client: AuthenticatedSocket) {

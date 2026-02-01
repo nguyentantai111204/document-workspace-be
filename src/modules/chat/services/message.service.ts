@@ -1,4 +1,6 @@
 import { Injectable, ForbiddenException, forwardRef, Inject } from '@nestjs/common'
+import { InjectQueue } from '@nestjs/bull'
+import type { Queue } from 'bull'
 import { MessageRepository } from '../repositories/message.repository'
 import { MessageReadRepository } from '../repositories/message-read.repository'
 import { ConversationParticipantRepository } from '../repositories/conversation-participant.repository'
@@ -25,6 +27,7 @@ export class MessageService {
         private readonly userDeviceRepo: UserDeviceRepository,
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
+        @InjectQueue('notifications') private readonly notificationsQueue: Queue,
     ) { }
 
     async sendMessage(
@@ -60,8 +63,13 @@ export class MessageService {
         const offlineUsers = recipientIds.filter(id => !onlineUsers.includes(id))
 
         if (offlineUsers.length > 0) {
-            this.sendPushNotifications(offlineUsers, message, senderId).catch(err => {
-                console.error('Failed to send push notifications:', err)
+            await this.notificationsQueue.add('send-chat-notification', {
+                recipientIds: offlineUsers,
+                messageId: message.id,
+                senderId: senderId,
+                content: message.content,
+                conversationId: message.conversationId,
+                attachmentsCount: message.attachments?.length || 0,
             })
         }
 
@@ -84,6 +92,23 @@ export class MessageService {
         }
 
         return this.messageRepo.getMessages(conversationId, page, limit)
+    }
+
+    async getMessagesSince(
+        conversationId: string,
+        lastMessageId: string,
+        userId: string,
+    ) {
+        const participant = await this.participantRepo.findByConversationAndUser(
+            conversationId,
+            userId,
+        )
+
+        if (!participant) {
+            throw new ForbiddenException('You are not a participant')
+        }
+
+        return this.messageRepo.getMessagesSince(conversationId, lastMessageId)
     }
 
     async markAsRead(messageId: string, userId: string) {

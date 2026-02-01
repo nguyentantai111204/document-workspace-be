@@ -141,6 +141,16 @@ export class RedisService implements OnModuleDestroy {
         }
     }
 
+    async mget(keys: string[]): Promise<(string | null)[]> {
+        if (!keys || keys.length === 0) return []
+        try {
+            return await this.redis.mget(keys);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable for mget, returning nulls`);
+            return keys.map(() => null);
+        }
+    }
+
     getClient(): Redis {
         return this.redis;
     }

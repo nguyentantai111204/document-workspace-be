@@ -13,11 +13,25 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator'
 import { MessageService } from '../services/message.service'
 import { SendMessageDto } from '../dto/send-message.dto'
 import { GetMessagesDto } from '../dto/get-messages.dto'
+import { User } from 'src/modules/users/entities/user.entity'
 
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class MessageController {
     constructor(private readonly messageService: MessageService) { }
+
+    @Get('conversations/:id/messages/sync')
+    async syncMessages(
+        @Param('id') conversationId: string,
+        @Query('lastMessageId') lastMessageId: string,
+        @CurrentUser() user: User,
+    ) {
+        return this.messageService.getMessagesSince(
+            conversationId,
+            lastMessageId,
+            user.id,
+        )
+    }
 
     @Get('conversations/:id/messages')
     async getMessages(
