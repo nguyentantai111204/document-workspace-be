@@ -5,11 +5,11 @@ import { ConversationRole } from '../enums/conversation-role.enum'
 @Entity('conversation_participants')
 @Index(['conversationId', 'userId'], { unique: true })
 export class ConversationParticipant extends BaseEntity {
-    @Column({ name: 'conversation_id' })
+    @Column({ name: 'conversation_id', type: 'uuid' })
     @Index()
     conversationId: string
 
-    @Column({ name: 'user_id' })
+    @Column({ name: 'user_id', type: 'uuid' })
     @Index()
     userId: string
 

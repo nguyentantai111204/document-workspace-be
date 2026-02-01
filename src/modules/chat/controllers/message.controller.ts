@@ -22,7 +22,7 @@ export class MessageController {
     @Get('conversations/:id/messages')
     async getMessages(
         @Param('id') conversationId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Query() query: GetMessagesDto,
     ) {
         return this.messageService.getMessages(
@@ -36,7 +36,7 @@ export class MessageController {
     @Post('conversations/:id/messages')
     async sendMessage(
         @Param('id') conversationId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Body() dto: SendMessageDto,
     ) {
         return this.messageService.sendMessage(
@@ -50,7 +50,7 @@ export class MessageController {
     @Patch('messages/:id/read')
     async markAsRead(
         @Param('id') messageId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         return this.messageService.markAsRead(messageId, userId)
     }
@@ -58,7 +58,7 @@ export class MessageController {
     @Patch('conversations/:id/read-all')
     async markAllAsRead(
         @Param('id') conversationId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         return this.messageService.markAllAsRead(conversationId, userId)
     }
@@ -66,7 +66,7 @@ export class MessageController {
     @Get('conversations/:id/unread-count')
     async getUnreadCount(
         @Param('id') conversationId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         const count = await this.messageService.getUnreadCount(conversationId, userId)
         return { unreadCount: count }
@@ -75,7 +75,7 @@ export class MessageController {
     @Get('workspaces/:workspaceId/messages/search')
     async searchMessages(
         @Param('workspaceId') workspaceId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Query('q') searchTerm: string,
         @Query('limit') limit?: number,
     ) {

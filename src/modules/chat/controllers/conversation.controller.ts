@@ -25,7 +25,7 @@ export class ConversationController {
     @Get('workspaces/:workspaceId/conversations')
     async listConversations(
         @Param('workspaceId') workspaceId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Query() query: ConversationQueryDto,
     ) {
         return this.conversationService.getUserConversations(userId, workspaceId, query)
@@ -34,7 +34,7 @@ export class ConversationController {
     @Post('workspaces/:workspaceId/conversations')
     async createConversation(
         @Param('workspaceId') workspaceId: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Body() dto: CreateConversationDto,
     ) {
         const { type, name, participantIds } = dto
@@ -64,7 +64,7 @@ export class ConversationController {
     @Get('conversations/:id')
     async getConversation(
         @Param('id') id: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         return this.conversationService.getConversationById(id, userId)
     }
@@ -72,7 +72,7 @@ export class ConversationController {
     @Patch('conversations/:id')
     async updateConversation(
         @Param('id') id: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Body() dto: UpdateConversationDto,
     ) {
         return this.conversationService.updateConversation(id, userId, dto)
@@ -81,7 +81,7 @@ export class ConversationController {
     @Delete('conversations/:id/leave')
     async leaveConversation(
         @Param('id') id: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         await this.conversationService.leaveConversation(id, userId)
         return { success: true }
@@ -90,7 +90,7 @@ export class ConversationController {
     @Get('conversations/:id/participants')
     async getParticipants(
         @Param('id') id: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
     ) {
         return this.conversationService.getParticipants(id, userId)
     }
@@ -98,7 +98,7 @@ export class ConversationController {
     @Post('conversations/:id/participants')
     async addParticipant(
         @Param('id') id: string,
-        @CurrentUser('sub') userId: string,
+        @CurrentUser('id') userId: string,
         @Body() dto: AddParticipantDto,
     ) {
         return this.conversationService.addParticipant(id, dto.userId, userId)

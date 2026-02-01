@@ -72,8 +72,8 @@ export class ConversationRepository {
             )
             .where('c.workspace_id = :workspaceId', { workspaceId })
             .andWhere('c.deletedAt IS NULL')
-            .orderBy('c.last_message_at', 'DESC')
-            .addOrderBy('c.created_at', 'DESC')
+            .orderBy('c.lastMessageAt', 'DESC')
+            .addOrderBy('c.createdAt', 'DESC')
             .skip(skip)
             .take(limit)
 

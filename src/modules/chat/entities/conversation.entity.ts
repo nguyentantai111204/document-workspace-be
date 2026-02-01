@@ -5,7 +5,7 @@ import { ConversationType } from '../enums/conversation-type.enum'
 @Entity('conversations')
 @Index(['workspaceId', 'lastMessageAt'])
 export class Conversation extends BaseEntity {
-    @Column({ name: 'workspace_id' })
+    @Column({ name: 'workspace_id', type: 'uuid' })
     @Index()
     workspaceId: string
 
@@ -21,7 +21,7 @@ export class Conversation extends BaseEntity {
     @Column({ name: 'avatar_url', nullable: true })
     avatarUrl?: string
 
-    @Column({ name: 'last_message_id', nullable: true })
+    @Column({ name: 'last_message_id', type: 'uuid', nullable: true })
     lastMessageId?: string
 
     @Column({ name: 'last_message_at', nullable: true })

@@ -12,11 +12,11 @@ export interface MessageAttachment {
 @Entity('messages')
 @Index(['conversationId', 'createdAt'])
 export class Message extends BaseEntity {
-    @Column({ name: 'conversation_id' })
+    @Column({ name: 'conversation_id', type: 'uuid' })
     @Index()
     conversationId: string
 
-    @Column({ name: 'sender_id' })
+    @Column({ name: 'sender_id', type: 'uuid' })
     @Index()
     senderId: string
 
@@ -26,7 +26,7 @@ export class Message extends BaseEntity {
     @Column({ type: 'jsonb', nullable: true })
     attachments?: MessageAttachment[]
 
-    @Column({ name: 'parent_message_id', nullable: true })
+    @Column({ name: 'parent_message_id', type: 'uuid', nullable: true })
     parentMessageId?: string
 
     @Column({ type: 'jsonb', nullable: true })
