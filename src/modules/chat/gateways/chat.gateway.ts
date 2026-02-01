@@ -60,15 +60,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             client.data.user = payload
             const userId = payload.sub
 
-            // Mark user as online
             await this.chatOnlineService.setUserOnline(userId, client.id)
 
-            // Join user's personal room
             client.join(`user:${userId}`)
 
             this.logger.log(`Chat client ${client.id} connected. User: ${userId}`)
 
-            // Broadcast online status to all
             this.server.emit('user-online', { userId })
 
         } catch (error) {
@@ -81,14 +78,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = client.data.user?.sub
 
         if (userId) {
-            // Mark user as offline
             await this.chatOnlineService.setUserOffline(userId, client.id)
 
-            // Check if user is still online (other devices)
             const isStillOnline = await this.chatOnlineService.isUserOnline(userId)
 
             if (!isStillOnline) {
-                // Broadcast offline status
                 this.server.emit('user-offline', {
                     userId,
                     lastSeenAt: new Date(),
@@ -108,7 +102,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const userId = client.data.user.sub
             const { conversationId, content, attachments } = dto
 
-            // Send message via service
             const message = await this.messageService.sendMessage(
                 conversationId,
                 userId,
@@ -116,7 +109,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 attachments,
             )
 
-            // Emit to all participants in the conversation
             this.server.to(`conversation:${conversationId}`).emit('new-message', message)
 
             return { success: true, message }
@@ -134,7 +126,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = client.data.user.sub
         const { conversationId } = data
 
-        // Broadcast to conversation participants
         client.to(`conversation:${conversationId}`).emit('user-typing', {
             conversationId,
             userId,
@@ -166,11 +157,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             await this.messageService.markAsRead(messageId, userId)
 
-            // Get message to find conversation
             const message = await this.messageService['messageRepo'].findById(messageId)
 
             if (message) {
-                // Broadcast read receipt to conversation
                 this.server.to(`conversation:${message.conversationId}`).emit('message-read', {
                     messageId,
                     userId,
@@ -205,28 +194,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return { success: true }
     }
 
-    // Helper method to emit to conversation
     emitToConversation(conversationId: string, event: string, data: any) {
         this.server.to(`conversation:${conversationId}`).emit(event, data)
     }
 
-    // Helper method to emit to specific user
     emitToUser(userId: string, event: string, data: any) {
         this.server.to(`user:${userId}`).emit(event, data)
     }
 
     private extractToken(client: Socket): string | undefined {
-        // Check auth handshake
         if (client.handshake.auth?.token) {
             return client.handshake.auth.token
         }
 
-        // Check query param
         if (client.handshake.query?.token) {
             return client.handshake.query.token as string
         }
 
-        // Check headers
         const authHeader = client.handshake.headers.authorization
         if (authHeader) {
             const [type, token] = authHeader.split(' ')

@@ -11,7 +11,6 @@ export class MessageReadRepository {
     ) { }
 
     async markAsRead(messageId: string, userId: string) {
-        // Use upsert to avoid duplicates
         const existing = await this.repo.findOne({
             where: { messageId, userId },
         })
@@ -46,7 +45,6 @@ export class MessageReadRepository {
             this.repo.create({ messageId, userId }),
         )
 
-        // Use INSERT ... ON CONFLICT DO NOTHING for batch insert
         return this.repo
             .createQueryBuilder()
             .insert()
