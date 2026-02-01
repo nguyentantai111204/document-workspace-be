@@ -33,7 +33,6 @@ export class MessageService {
         content: string,
         attachments?: MessageAttachment[],
     ) {
-        // 1. Validate: Sender must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             senderId,
@@ -43,7 +42,6 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant of this conversation')
         }
 
-        // 2. Save message
         const message = await this.messageRepo.create({
             conversationId,
             senderId,
@@ -51,20 +49,16 @@ export class MessageService {
             attachments,
         })
 
-        // 3. Update conversation last message
         await this.conversationService.updateLastMessage(conversationId, message.id)
 
-        // 4. Get all participants except sender
         const participants = await this.participantRepo.getParticipants(conversationId)
         const recipientIds = participants
             .filter(p => p.userId !== senderId)
             .map(p => p.userId)
 
-        // 5. Check who is online
         const onlineUsers = await this.chatOnlineService.getOnlineUsers(recipientIds)
         const offlineUsers = recipientIds.filter(id => !onlineUsers.includes(id))
 
-        // 6. Send FCM to offline users (don't block)
         if (offlineUsers.length > 0) {
             this.sendPushNotifications(offlineUsers, message, senderId).catch(err => {
                 console.error('Failed to send push notifications:', err)
@@ -99,7 +93,6 @@ export class MessageService {
             throw new BadRequestError('Message not found')
         }
 
-        // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             message.conversationId,
             userId,
@@ -109,7 +102,6 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant')
         }
 
-        // Don't mark own messages as read
         if (message.senderId === userId) {
             return { success: true }
         }
@@ -120,7 +112,6 @@ export class MessageService {
     }
 
     async markAllAsRead(conversationId: string, userId: string) {
-        // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -130,7 +121,6 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant')
         }
 
-        // Update last read timestamp
         await this.participantRepo.updateLastReadAt(conversationId, userId)
 
         return { success: true }
