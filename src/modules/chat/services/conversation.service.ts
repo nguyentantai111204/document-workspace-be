@@ -7,12 +7,15 @@ import { ConversationRole } from '../enums/conversation-role.enum'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 import { ConversationQueryDto } from '../dto/conversation-query.dto'
 
+import { ChatOnlineService } from './chat-online.service'
+
 @Injectable()
 export class ConversationService {
     constructor(
         private readonly conversationRepo: ConversationRepository,
         private readonly participantRepo: ConversationParticipantRepository,
         private readonly workspaceMemberService: WorkspaceMemberService,
+        private readonly chatOnlineService: ChatOnlineService,
     ) { }
 
     async createDirectConversation(
@@ -20,10 +23,8 @@ export class ConversationService {
         userId1: string,
         userId2: string,
     ) {
-        // 1. Validate: Both users must be workspace members
         await this.validateWorkspaceMembership(workspaceId, [userId1, userId2])
 
-        // 2. Check if conversation already exists
         const existing = await this.conversationRepo.findDirectConversation(
             workspaceId,
             userId1,
@@ -34,13 +35,11 @@ export class ConversationService {
             return existing
         }
 
-        // 3. Create conversation
         const conversation = await this.conversationRepo.create({
             workspaceId,
             type: ConversationType.DIRECT,
         })
 
-        // 4. Add both participants
         await this.participantRepo.create({
             conversationId: conversation.id,
             userId: userId1,
@@ -62,28 +61,23 @@ export class ConversationService {
         name: string,
         participantIds: string[],
     ) {
-        // 1. Validate: Creator must be workspace member
         await this.validateWorkspaceMembership(workspaceId, [creatorId])
 
-        // 2. Validate: All participants must be workspace members
         const allParticipants = Array.from(new Set([creatorId, ...participantIds]))
         await this.validateWorkspaceMembership(workspaceId, allParticipants)
 
-        // 3. Create group conversation
         const conversation = await this.conversationRepo.create({
             workspaceId,
             type: ConversationType.GROUP,
             name,
         })
 
-        // 4. Add creator as admin
         await this.participantRepo.create({
             conversationId: conversation.id,
             userId: creatorId,
             role: ConversationRole.ADMIN,
         })
 
-        // 5. Add other participants as members
         for (const userId of participantIds) {
             if (userId !== creatorId) {
                 await this.participantRepo.create({
@@ -102,7 +96,6 @@ export class ConversationService {
         workspaceId: string,
         query: ConversationQueryDto,
     ) {
-        // Validate: User must be workspace member
         await this.validateWorkspaceMembership(workspaceId, [userId])
 
         return this.conversationRepo.getUserConversations(userId, workspaceId, query)
@@ -115,7 +108,6 @@ export class ConversationService {
             throw new BadRequestError('Conversation not found')
         }
 
-        // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -139,7 +131,6 @@ export class ConversationService {
             throw new BadRequestError('Conversation not found')
         }
 
-        // For group chats, only admin can update
         if (conversation.type === ConversationType.GROUP) {
             await this.validateParticipantRole(
                 conversationId,
@@ -162,10 +153,8 @@ export class ConversationService {
             throw new BadRequestError('Conversation not found')
         }
 
-        // 1. Validate: New user must be workspace member
         await this.validateWorkspaceMembership(conversation.workspaceId, [newUserId])
 
-        // 2. Validate: Requester must be admin for group chats
         if (conversation.type === ConversationType.GROUP) {
             await this.validateParticipantRole(
                 conversationId,
@@ -176,7 +165,6 @@ export class ConversationService {
             throw new BadRequestError('Cannot add participants to direct conversations')
         }
 
-        // 3. Check if user is already a participant
         const existing = await this.participantRepo.findByConversationAndUser(
             conversationId,
             newUserId,
@@ -186,7 +174,6 @@ export class ConversationService {
             throw new BadRequestError('User is already a participant')
         }
 
-        // 4. Add participant
         return this.participantRepo.create({
             conversationId,
             userId: newUserId,
@@ -208,7 +195,6 @@ export class ConversationService {
     }
 
     async getParticipants(conversationId: string, userId: string) {
-        // Validate: User must be participant
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -231,8 +217,6 @@ export class ConversationService {
             return 0
         }
 
-        // Import MessageRepository to count unread
-        // For now return 0, will implement in MessageService
         return 0
     }
 
@@ -240,7 +224,22 @@ export class ConversationService {
         return this.conversationRepo.updateLastMessage(conversationId, messageId)
     }
 
-    // Private helper methods
+    async getOnlineParticipants(conversationId: string, userId: string) {
+        const participant = await this.participantRepo.findByConversationAndUser(
+            conversationId,
+            userId,
+        )
+
+        if (!participant) {
+            throw new ForbiddenException('You are not a participant')
+        }
+
+        const participants = await this.participantRepo.getParticipants(conversationId)
+        const participantIds = participants.map(p => p.userId)
+
+        return this.chatOnlineService.getOnlineUsers(participantIds)
+    }
+
 
     private async validateWorkspaceMembership(
         workspaceId: string,

@@ -178,7 +178,6 @@ export class MessageService {
         return this.messageRepo.searchMessages(userId, workspaceId, searchTerm, page, limit)
     }
 
-    // Private methods
 
     private async sendPushNotifications(
         userIds: string[],
@@ -186,26 +185,22 @@ export class MessageService {
         senderId: string,
     ) {
         try {
-            // Get sender info
             const sender = await this.userRepo.findOne({ where: { id: senderId } })
 
             if (!sender) {
                 return
             }
 
-            // Send FCM to each offline user
             for (const userId of userIds) {
-                // Check if conversation is muted
                 const participant = await this.participantRepo.findByConversationAndUser(
                     message.conversationId,
                     userId,
                 )
 
                 if (participant?.isMuted) {
-                    continue // Skip muted conversations
+                    continue
                 }
 
-                // Get user's FCM tokens
                 const tokens = await this.userDeviceRepo.getTokensByUser(userId)
 
                 if (tokens.length > 0) {

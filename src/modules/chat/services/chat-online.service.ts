@@ -21,8 +21,6 @@ export class ChatOnlineService {
 
         await this.redisService.srem(`chat:user_sockets:${userId}`, socketId)
 
-        // We do NOT remove `chat:presence:{userId}` immediately.
-        // Let TTL expire naturally to handle distinct device disconnections gracefully.
     }
 
     async isUserOnline(userId: string): Promise<boolean> {
@@ -39,8 +37,6 @@ export class ChatOnlineService {
         return userIds.filter((_, index) => results[index] !== null)
     }
 
-    // Deprecated: No longer maintaining a global set of online users
-    // If needed, would require SCAN or keeping the set (but handling Sync issues)
     async getAllOnlineUsers(): Promise<string[]> {
         return []
     }

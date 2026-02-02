@@ -1,5 +1,6 @@
-import { Column, Entity, Index } from 'typeorm'
+import { Column, Entity, Index, OneToMany } from 'typeorm'
 import { BaseEntity } from 'src/common/entities/base.entity'
+import { MessageRead } from './message-read.entity'
 
 export interface MessageAttachment {
     type: 'image' | 'file' | 'video' | 'audio'
@@ -31,4 +32,7 @@ export class Message extends BaseEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     metadata?: Record<string, any>
+
+    @OneToMany(() => MessageRead, read => read.message)
+    reads: MessageRead[]
 }

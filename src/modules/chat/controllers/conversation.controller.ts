@@ -103,4 +103,11 @@ export class ConversationController {
     ) {
         return this.conversationService.addParticipant(id, dto.userId, userId)
     }
+    @Get('conversations/:id/online')
+    async getOnlineParticipants(
+        @Param('id') id: string,
+        @CurrentUser('id') userId: string,
+    ) {
+        return this.conversationService.getOnlineParticipants(id, userId)
+    }
 }

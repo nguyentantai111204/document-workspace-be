@@ -31,27 +31,22 @@ export class NotificationsProcessor {
         const { recipientIds, messageId, senderId, content, conversationId, attachmentsCount } = job.data
 
         try {
-            // 1. Double-check presence (Last line of defense)
             const keys = recipientIds.map(id => `chat:presence:${id}`)
             const onlineResults = await this.redisService.mget(keys)
 
-            // Filter strictly offline users
             const offlineRecipientIds = recipientIds.filter((_, index) => onlineResults[index] === null)
 
             if (offlineRecipientIds.length === 0) {
                 return
             }
 
-            // 2. Get sender info
             const sender = await this.userRepo.findOne({ where: { id: senderId } })
             if (!sender) return
 
-            // 3. Prepare message preview
             const messagePreview = attachmentsCount > 0
                 ? `Sent ${attachmentsCount} attachment(s)`
                 : content
 
-            // 4. Send to each offline user
             for (const userId of offlineRecipientIds) {
                 const tokens = await this.userDeviceRepo.getTokensByUser(userId)
 
