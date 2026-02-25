@@ -27,7 +27,7 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
     MEMBER: [
         WorkspaceAction.UPLOAD_FILE,
         WorkspaceAction.READ_FILE,
-        WorkspaceAction.DELETE_FILE, // Restricted by FileOwnershipGuard
+        WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
     ],
 

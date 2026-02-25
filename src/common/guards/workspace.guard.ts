@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { WorkspaceMemberService } from "src/modules/workspaces/services/workspace-member.service"
 import { Workspace } from "src/modules/workspaces/entities/workspace.entity"
+import { WorkspaceRole } from "src/modules/workspaces/enums/workspace-role.enum"
 import { NotFoundError } from "../exceptions/not-found.exception"
 import { Repository } from "typeorm"
 import { ForbiddenError } from "../exceptions/forbiden.exception"
@@ -31,7 +32,11 @@ export class WorkspaceGuard implements CanActivate {
             throw new NotFoundError('Workspace không tồn tại')
         }
 
-        const role = await this.memberService.getUserRole(workspaceId, user.id)
+        let role = await this.memberService.getUserRole(workspaceId, user.id)
+
+        if (workspace.ownerId === user.id) {
+            role = WorkspaceRole.OWNER
+        }
 
         if (!role) throw new ForbiddenError('Bạn không có quyền truy cập')
 
