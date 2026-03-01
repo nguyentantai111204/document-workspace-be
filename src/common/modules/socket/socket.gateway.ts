@@ -11,7 +11,8 @@ import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
     cors: {
-        origin: '*',
+        origin: ['http://localhost:5173', 'https://hr0z8kcl-5173.asse.devtunnels.ms'],
+        credentials: true,
     },
     namespace: 'notifications',
 })
@@ -55,7 +56,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     private extractToken(client: Socket): string | undefined {
-        // Check auth handshake
+        // Check auth handshake (ưu tiên để frontend có thể gửi token tường minh)
         if (client.handshake.auth?.token) {
             return client.handshake.auth.token;
         }
@@ -63,14 +64,26 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         if (client.handshake.query?.token) {
             return client.handshake.query.token as string;
         }
-        // Check headers
+        // Check Authorization header
         const authHeader = client.handshake.headers.authorization;
         if (authHeader) {
             const [type, token] = authHeader.split(' ');
             if (type === 'Bearer') return token;
         }
+        // Đọc accessToken từ HttpOnly cookie 
+        const cookieHeader = client.handshake.headers.cookie;
+        if (cookieHeader) {
+            const cookies: Record<string, string> = Object.fromEntries(
+                cookieHeader.split(';').map(c => {
+                    const [key, ...val] = c.trim().split('=');
+                    return [key, decodeURIComponent(val.join('='))];
+                })
+            );
+            if (cookies['accessToken']) return cookies['accessToken'];
+        }
         return undefined;
     }
+
 
     // Method to emit events to specific user
     sendToUser(userId: string, event: string, data: any) {
