@@ -14,12 +14,12 @@ export class RefreshTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>()
 
-    const refreshToken = req.body?.refreshToken
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken
     if (!refreshToken) {
       throw new UnauthorizedException('Thiếu refresh token')
     }
 
-    const userId = req.body?.userId
+    const userId = req.cookies?.userId || req.body?.userId
     if (!userId) {
       throw new UnauthorizedException('Thiếu userId')
     }

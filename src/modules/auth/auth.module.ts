@@ -14,6 +14,7 @@ import { NotFoundError } from 'src/common/exceptions/not-found.exception'
 import { ScheduleModule } from '@nestjs/schedule'
 import { KeyTokenModule } from '../key-token/key-token.module'
 import { PermissionModule } from '../permission/permission.module'
+import { AuthCookieHelper } from './utils/auth-cookie.helper'
 
 @Module({
     imports: [
@@ -43,7 +44,8 @@ import { PermissionModule } from '../permission/permission.module'
             },
         }),
     ],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy, AuthCookieHelper],
     controllers: [AuthController],
+    exports: [AuthCookieHelper],
 })
 export class AuthModule { }

@@ -7,7 +7,12 @@ import { ExtractJwt, Strategy } from 'passport-jwt'
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor() {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // giải mã token ở đây
+            jwtFromRequest: ExtractJwt.fromExtractors([
+                (request: any) => {
+                    return request?.cookies?.accessToken;
+                },
+                ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ]),
             secretOrKey: process.env.JWT_SECRET as StringValue,
         })
     }
