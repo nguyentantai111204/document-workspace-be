@@ -16,15 +16,15 @@ import { NotificationModule } from "../notifications/notification.module";
 import { SocketModule } from "src/common/modules/socket/socket.module";
 import { FirebaseModule } from "src/common/modules/firebase/firebase.module";
 import { ChatModule } from "../chat/chat.module";
-
-
-
-
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     AppConfigModule, DatabaseModule, LoggerModule, AuthModule, UsersModule,
-    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule, RedisModule, NotificationModule, SocketModule, FirebaseModule, ChatModule],
+    KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule,
+    RedisModule, NotificationModule, SocketModule, FirebaseModule, ChatModule,
+  ],
   providers: [
     {
       provide: APP_FILTER,

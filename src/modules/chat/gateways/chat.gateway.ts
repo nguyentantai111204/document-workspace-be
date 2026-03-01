@@ -70,7 +70,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             this.logger.log(`Chat client ${client.id} connected. User: ${userId}`)
 
-            this.server.emit('user-online', { userId })
+            client.to(`user:${userId}`).emit('user-online', { userId })
 
         } catch (error) {
             this.logger.error(`Connection unauthorized: ${error.message}`)
@@ -168,7 +168,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             await this.messageService.markAsRead(messageId, userId)
 
-            const message = await this.messageService['messageRepo'].findById(messageId)
+            const message = await this.messageService.getMessageById(messageId)
 
             if (message) {
                 this.server.to(`conversation:${message.conversationId}`).emit('message-read', {

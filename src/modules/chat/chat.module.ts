@@ -8,8 +8,8 @@ import { Conversation } from './entities/conversation.entity'
 import { ConversationParticipant } from './entities/conversation-participant.entity'
 import { Message } from './entities/message.entity'
 import { MessageRead } from './entities/message-read.entity'
-import { User } from '../users/entities/user.entity'
 import { UserDevice } from '../notifications/entities/user-device.entity'
+import { User } from '../users/entities/user.entity'
 
 import { ConversationRepository } from './repositories/conversation.repository'
 import { ConversationParticipantRepository } from './repositories/conversation-participant.repository'
@@ -37,12 +37,11 @@ import { FirebaseModule } from 'src/common/modules/firebase/firebase.module'
             ConversationParticipant,
             Message,
             MessageRead,
-            User,
             UserDevice,
+            User,
         ]),
         JwtModule.register({}),
         forwardRef(() => WorkspaceModule),
-        RedisModule,
         RedisModule,
         FirebaseModule,
         BullModule.registerQueue({
@@ -62,7 +61,6 @@ import { FirebaseModule } from 'src/common/modules/firebase/firebase.module'
         MessageService,
         ChatOnlineService,
 
-        // Gateway
         // Gateway
         ChatGateway,
         NotificationsProcessor,

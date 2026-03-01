@@ -1,18 +1,14 @@
-import { Injectable, ForbiddenException, forwardRef, Inject } from '@nestjs/common'
+import { Injectable, ForbiddenException } from '@nestjs/common'
 import { InjectQueue } from '@nestjs/bull'
 import type { Queue } from 'bull'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { MessageRepository } from '../repositories/message.repository'
 import { MessageReadRepository } from '../repositories/message-read.repository'
 import { ConversationParticipantRepository } from '../repositories/conversation-participant.repository'
-import { ConversationService } from './conversation.service'
 import { ChatOnlineService } from './chat-online.service'
-import { FirebaseService } from 'src/common/modules/firebase/firebase.service'
-import { UserDeviceRepository } from 'src/modules/notifications/repositories/user-device.repository'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
-import { Message, MessageAttachment } from '../entities/message.entity'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { User } from 'src/modules/users/entities/user.entity'
+import { MessageAttachment } from '../entities/message.entity'
+import { MessageSentEvent } from '../events/message-sent.event'
 
 @Injectable()
 export class MessageService {
@@ -20,13 +16,8 @@ export class MessageService {
         private readonly messageRepo: MessageRepository,
         private readonly messageReadRepo: MessageReadRepository,
         private readonly participantRepo: ConversationParticipantRepository,
-        @Inject(forwardRef(() => ConversationService))
-        private readonly conversationService: ConversationService,
         private readonly chatOnlineService: ChatOnlineService,
-        private readonly firebaseService: FirebaseService,
-        private readonly userDeviceRepo: UserDeviceRepository,
-        @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
+        private readonly eventEmitter: EventEmitter2,
         @InjectQueue('notifications') private readonly notificationsQueue: Queue,
     ) { }
 
@@ -52,7 +43,10 @@ export class MessageService {
             attachments,
         })
 
-        await this.conversationService.updateLastMessage(conversationId, message.id)
+        await this.eventEmitter.emitAsync(
+            'message.sent',
+            new MessageSentEvent(conversationId, message.id),
+        )
 
         const participants = await this.participantRepo.getParticipants(conversationId)
         const recipientIds = participants
@@ -178,51 +172,7 @@ export class MessageService {
         return this.messageRepo.searchMessages(userId, workspaceId, searchTerm, page, limit)
     }
 
-
-    private async sendPushNotifications(
-        userIds: string[],
-        message: Message,
-        senderId: string,
-    ) {
-        try {
-            const sender = await this.userRepo.findOne({ where: { id: senderId } })
-
-            if (!sender) {
-                return
-            }
-
-            for (const userId of userIds) {
-                const participant = await this.participantRepo.findByConversationAndUser(
-                    message.conversationId,
-                    userId,
-                )
-
-                if (participant?.isMuted) {
-                    continue
-                }
-
-                const tokens = await this.userDeviceRepo.getTokensByUser(userId)
-
-                if (tokens.length > 0) {
-                    const messagePreview = message.attachments && message.attachments.length > 0
-                        ? `Sent ${message.attachments.length} attachment(s)`
-                        : message.content
-
-                    await this.firebaseService.sendToMultipleDevices(
-                        tokens,
-                        sender.fullName,
-                        messagePreview,
-                        {
-                            type: 'chat_message',
-                            conversationId: message.conversationId,
-                            messageId: message.id,
-                            senderId: senderId,
-                        },
-                    )
-                }
-            }
-        } catch (error) {
-            console.error('Error sending push notifications:', error)
-        }
+    async getMessageById(messageId: string) {
+        return this.messageRepo.findById(messageId)
     }
 }

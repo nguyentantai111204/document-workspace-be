@@ -1,4 +1,5 @@
 import { Injectable, ForbiddenException } from '@nestjs/common'
+import { OnEvent } from '@nestjs/event-emitter'
 import { ConversationRepository } from '../repositories/conversation.repository'
 import { ConversationParticipantRepository } from '../repositories/conversation-participant.repository'
 import { WorkspaceMemberService } from 'src/modules/workspaces/services/workspace-member.service'
@@ -6,8 +7,9 @@ import { ConversationType } from '../enums/conversation-type.enum'
 import { ConversationRole } from '../enums/conversation-role.enum'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 import { ConversationQueryDto } from '../dto/conversation-query.dto'
-
 import { ChatOnlineService } from './chat-online.service'
+import { MessageService } from './message.service'
+import { MessageSentEvent } from '../events/message-sent.event'
 
 @Injectable()
 export class ConversationService {
@@ -16,6 +18,7 @@ export class ConversationService {
         private readonly participantRepo: ConversationParticipantRepository,
         private readonly workspaceMemberService: WorkspaceMemberService,
         private readonly chatOnlineService: ChatOnlineService,
+        private readonly messageService: MessageService,
     ) { }
 
     async createDirectConversation(
@@ -217,7 +220,7 @@ export class ConversationService {
             return 0
         }
 
-        return 0
+        return this.messageService.getUnreadCount(conversationId, userId)
     }
 
     async updateLastMessage(conversationId: string, messageId: string) {
@@ -273,5 +276,10 @@ export class ConversationService {
         if (participant.role !== requiredRole) {
             throw new ForbiddenException(`You must be a ${requiredRole} to perform this action`)
         }
+    }
+
+    @OnEvent('message.sent')
+    async handleMessageSent(event: MessageSentEvent) {
+        await this.conversationRepo.updateLastMessage(event.conversationId, event.messageId)
     }
 }
