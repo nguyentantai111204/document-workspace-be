@@ -16,7 +16,7 @@ import { RedisService } from './redis.service';
                     port: redisConfig.port,
                     password: redisConfig.password,
                     db: redisConfig.db,
-                    lazyConnect: true, // Không connect ngay, chỉ connect khi cần
+                    // lazyConnect: true, // Không connect ngay, chỉ connect khi cần
                     maxRetriesPerRequest: 1, // Chỉ retry 1 lần thay vì 20 lần
                     connectTimeout: 2000, // Timeout 2s cho connection
                     retryStrategy: (times) => {
