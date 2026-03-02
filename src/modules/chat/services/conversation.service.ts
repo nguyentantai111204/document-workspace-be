@@ -1,5 +1,6 @@
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
+import { Conversation } from '../entities/conversation.entity'
 import { ConversationRepository } from '../repositories/conversation.repository'
 import { ConversationParticipantRepository } from '../repositories/conversation-participant.repository'
 import { WorkspaceMemberService } from 'src/modules/workspaces/services/workspace-member.service'
@@ -36,11 +37,7 @@ export class ConversationService {
         const { workspaceId, userId1, userId2, name } = params
         await this.validateWorkspaceMembership(workspaceId, [userId1, userId2])
 
-        const existing = await this.conversationRepo.findDirectConversation(params)
-
-        if (existing) {
-            return existing
-        }
+        await this.checkDuplicateName({ ...params, type: ConversationType.DIRECT })
 
         const conversation = await this.conversationRepo.create({
             workspaceId,
@@ -69,6 +66,8 @@ export class ConversationService {
 
         const allParticipants = Array.from(new Set([creatorId, ...participantIds]))
         await this.validateWorkspaceMembership(workspaceId, allParticipants)
+
+        await this.checkDuplicateName({ workspaceId, name, type: ConversationType.GROUP })
 
         const conversation = await this.conversationRepo.create({
             workspaceId,
@@ -252,6 +251,34 @@ export class ConversationService {
                     `User ${userId} is not a member of this workspace`,
                 )
             }
+        }
+    }
+
+    private async checkDuplicateName(params: {
+        workspaceId: string,
+        name?: string,
+        type: ConversationType,
+        userId1?: string,
+        userId2?: string
+    }) {
+        const { workspaceId, name, type, userId1, userId2 } = params
+        if (!name) return
+
+        let existing: Conversation | null = null
+
+        if (type === ConversationType.DIRECT && userId1 && userId2) {
+            existing = await this.conversationRepo.findDirectConversation({
+                workspaceId,
+                userId1,
+                userId2,
+                name,
+            })
+        } else if (type === ConversationType.GROUP) {
+            existing = await this.conversationRepo.findGroupByName(workspaceId, name)
+        }
+
+        if (existing) {
+            throw new BadRequestError('Conversation name already exists')
         }
     }
 

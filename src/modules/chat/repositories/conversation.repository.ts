@@ -32,7 +32,7 @@ export class ConversationRepository {
     async findDirectConversation(
         params: CreateDirectConversation,
     ): Promise<Conversation | null> {
-        const { workspaceId, userId1, userId2 } = params
+        const { workspaceId, userId1, userId2, name } = params
         const query = this.repo
             .createQueryBuilder('c')
             .innerJoin(
@@ -51,7 +51,24 @@ export class ConversationRepository {
             .andWhere('c.type = :type', { type: ConversationType.DIRECT })
             .andWhere('c.deletedAt IS NULL')
 
+        if (name) {
+            query.andWhere('c.name = :name', { name })
+        } else {
+            query.andWhere('c.name IS NULL')
+        }
+
         return query.getOne()
+    }
+
+    async findGroupByName(workspaceId: string, name: string): Promise<Conversation | null> {
+        return this.repo.findOne({
+            where: {
+                workspaceId,
+                name,
+                type: ConversationType.GROUP,
+                deletedAt: IsNull(),
+            },
+        })
     }
 
     async getUserConversations(
@@ -82,8 +99,8 @@ export class ConversationRepository {
                 }))
         }
 
-        qb.orderBy('c.lastMessageAt', 'DESC')
-            .addOrderBy('c.createdAt', 'DESC')
+        qb.addSelect('COALESCE(c.last_message_at, c.created_at)', 'combined_sort_at')
+            .orderBy('combined_sort_at', 'DESC')
             .skip(skip)
             .take(limit)
 
