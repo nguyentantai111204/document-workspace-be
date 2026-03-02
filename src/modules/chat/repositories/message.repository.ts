@@ -4,6 +4,7 @@ import { Repository, IsNull, MoreThan } from 'typeorm'
 import { Message } from '../entities/message.entity'
 import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interface'
 import { buildPaginationMeta } from 'src/common/utils/pagination.utils'
+import { GetMessages, GetUnreadCount, SearchMessages } from '../interfaces/message.interface'
 
 @Injectable()
 export class MessageRepository {
@@ -22,10 +23,10 @@ export class MessageRepository {
     }
 
     async getMessages(
-        conversationId: string,
-        page: number = 1,
-        limit: number = 50,
+        params: GetMessages,
     ): Promise<PaginatedResponse<Message>> {
+        const { conversationId, query } = params
+        const { page = 1, limit = 50 } = query
         const skip = (page - 1) * limit
 
         const qb = this.repo
@@ -46,10 +47,10 @@ export class MessageRepository {
     }
 
     async getUnreadMessages(
-        conversationId: string,
-        userId: string,
+        params: GetUnreadCount,
         lastReadAt?: Date,
     ): Promise<number> {
+        const { conversationId, userId } = params
         const qb = this.repo
             .createQueryBuilder('m')
             .where('m.conversation_id = :conversationId', { conversationId })
@@ -64,12 +65,10 @@ export class MessageRepository {
     }
 
     async searchMessages(
-        userId: string,
-        workspaceId: string,
-        searchTerm: string,
-        page: number = 1,
-        limit: number = 20,
+        params: SearchMessages,
     ): Promise<PaginatedResponse<Message>> {
+        const { userId, workspaceId, query } = params
+        const { q: searchTerm, page = 1, limit = 20 } = query
         const skip = (page - 1) * limit
 
         const qb = this.repo

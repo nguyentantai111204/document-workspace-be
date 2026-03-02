@@ -215,7 +215,7 @@ export class ConversationService {
             return 0
         }
 
-        return this.messageService.getUnreadCount(conversationId, userId)
+        return this.messageService.getUnreadCount({ conversationId, userId })
     }
 
     async updateLastMessage(conversationId: string, messageId: string) {
@@ -236,7 +236,7 @@ export class ConversationService {
         const participants = await this.participantRepo.getParticipants(conversationId)
         const participantIds = participants.map(p => p.userId)
 
-        return this.chatOnlineService.getOnlineUsers(participantIds)
+        return this.chatOnlineService.getOnlineUsers({ userIds: participantIds })
     }
 
 

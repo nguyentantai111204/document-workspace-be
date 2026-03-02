@@ -63,8 +63,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             client.data.user = payload
             const userId = payload.sub
 
-            await this.chatOnlineService.setUserOnline(userId, client.id)
-            await this.chatOnlineService.setUserPresence(userId)
+            await this.chatOnlineService.setUserOnline({ userId, socketId: client.id })
+            await this.chatOnlineService.setUserPresence({ userId })
 
             client.join(`user:${userId}`)
 
@@ -81,7 +81,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage('heartbeat')
     async handleHeartbeat(@ConnectedSocket() client: AuthenticatedSocket) {
         const userId = client.data.user.sub
-        await this.chatOnlineService.setUserPresence(userId)
+        await this.chatOnlineService.setUserPresence({ userId })
         return { success: true }
     }
 
@@ -89,9 +89,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const userId = client.data.user?.sub
 
         if (userId) {
-            await this.chatOnlineService.setUserOffline(userId, client.id)
+            await this.chatOnlineService.setUserOffline({ userId, socketId: client.id })
 
-            const isStillOnline = await this.chatOnlineService.isUserOnline(userId)
+            const isStillOnline = await this.chatOnlineService.isUserOnline({ userId })
 
             if (!isStillOnline) {
                 this.server.emit('user-offline', {
@@ -113,12 +113,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const userId = client.data.user.sub
             const { conversationId, content, attachments } = dto
 
-            const message = await this.messageService.sendMessage(
+            const message = await this.messageService.sendMessage({
                 conversationId,
-                userId,
+                senderId: userId,
                 content,
                 attachments,
-            )
+            })
 
             this.server.to(`conversation:${conversationId}`).emit('new-message', message)
 
@@ -166,7 +166,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             const userId = client.data.user.sub
             const { messageId } = data
 
-            await this.messageService.markAsRead(messageId, userId)
+            await this.messageService.markAsRead({ messageId, userId })
 
             const message = await this.messageService.getMessageById(messageId)
 

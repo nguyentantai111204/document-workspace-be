@@ -1,21 +1,12 @@
-import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsOptional, Max, IsString } from 'class-validator'
+import { PaginationDto } from 'src/common/dtos/pagination.dto'
 
-export class ConversationQueryDto {
+export class ConversationQueryDto extends PaginationDto {
     @IsOptional()
     @IsString()
     search?: string
 
     @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
-    page?: number = 1
-
-    @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
     @Max(100)
     limit?: number = 20
 }

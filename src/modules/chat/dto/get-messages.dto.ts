@@ -1,17 +1,8 @@
-import { IsOptional, IsInt, Min, Max } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsOptional, Max } from 'class-validator'
+import { PaginationDto } from 'src/common/dtos/pagination.dto'
 
-export class GetMessagesDto {
+export class GetMessagesDto extends PaginationDto {
     @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
-    page?: number = 1
-
-    @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
     @Max(100)
     limit?: number = 50
 }

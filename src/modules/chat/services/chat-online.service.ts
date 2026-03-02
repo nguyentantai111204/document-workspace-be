@@ -1,34 +1,46 @@
 import { Injectable } from '@nestjs/common'
 import { RedisService } from 'src/common/modules/redis/redis.service'
+import {
+    SetUserOnline,
+    SetUserPresence,
+    SetUserOffline,
+    IsUserOnline,
+    GetOnlineUsers,
+    GetUserSocketIds,
+} from '../interfaces/chat-online.interface'
 
 @Injectable()
 export class ChatOnlineService {
     constructor(private readonly redisService: RedisService) { }
 
-    async setUserOnline(userId: string, socketId: string) {
-        await this.setUserPresence(userId)
+    async setUserOnline(params: SetUserOnline) {
+        const { userId, socketId } = params
+        await this.setUserPresence({ userId })
 
         await this.redisService.set(`chat:socket:${socketId}`, userId)
         await this.redisService.sadd(`chat:user_sockets:${userId}`, socketId)
     }
 
-    async setUserPresence(userId: string) {
+    async setUserPresence(params: SetUserPresence) {
+        const { userId } = params
         await this.redisService.set(`chat:presence:${userId}`, '1', 60)
     }
 
-    async setUserOffline(userId: string, socketId: string) {
+    async setUserOffline(params: SetUserOffline) {
+        const { userId, socketId } = params
         await this.redisService.del(`chat:socket:${socketId}`)
 
         await this.redisService.srem(`chat:user_sockets:${userId}`, socketId)
-
     }
 
-    async isUserOnline(userId: string): Promise<boolean> {
+    async isUserOnline(params: IsUserOnline): Promise<boolean> {
+        const { userId } = params
         const presence = await this.redisService.get(`chat:presence:${userId}`)
         return !!presence
     }
 
-    async getOnlineUsers(userIds: string[]): Promise<string[]> {
+    async getOnlineUsers(params: GetOnlineUsers): Promise<string[]> {
+        const { userIds } = params
         if (!userIds || userIds.length === 0) return []
 
         const keys = userIds.map(id => `chat:presence:${id}`)
@@ -41,7 +53,8 @@ export class ChatOnlineService {
         return []
     }
 
-    async getUserSocketIds(userId: string): Promise<string[]> {
+    async getUserSocketIds(params: GetUserSocketIds): Promise<string[]> {
+        const { userId } = params
         return this.redisService.smembers(`chat:user_sockets:${userId}`)
     }
 }

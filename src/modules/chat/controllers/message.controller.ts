@@ -26,11 +26,11 @@ export class MessageController {
         @Query('lastMessageId') lastMessageId: string,
         @CurrentUser() user: User,
     ) {
-        return this.messageService.getMessagesSince(
+        return this.messageService.getMessagesSince({
             conversationId,
             lastMessageId,
-            user.id,
-        )
+            userId: user.id,
+        })
     }
 
     @Get('conversations/:id/messages')
@@ -39,12 +39,11 @@ export class MessageController {
         @CurrentUser('id') userId: string,
         @Query() query: GetMessagesDto,
     ) {
-        return this.messageService.getMessages(
+        return this.messageService.getMessages({
             conversationId,
             userId,
-            query.page,
-            query.limit,
-        )
+            query,
+        })
     }
 
     @Post('conversations/:id/messages')
@@ -53,12 +52,12 @@ export class MessageController {
         @CurrentUser('id') userId: string,
         @Body() dto: SendMessageDto,
     ) {
-        return this.messageService.sendMessage(
+        return this.messageService.sendMessage({
             conversationId,
-            userId,
-            dto.content,
-            dto.attachments,
-        )
+            senderId: userId,
+            content: dto.content,
+            attachments: dto.attachments,
+        })
     }
 
     @Patch('messages/:id/read')
@@ -66,7 +65,7 @@ export class MessageController {
         @Param('id') messageId: string,
         @CurrentUser('id') userId: string,
     ) {
-        return this.messageService.markAsRead(messageId, userId)
+        return this.messageService.markAsRead({ messageId, userId })
     }
 
     @Patch('conversations/:id/read-all')
@@ -74,7 +73,7 @@ export class MessageController {
         @Param('id') conversationId: string,
         @CurrentUser('id') userId: string,
     ) {
-        return this.messageService.markAllAsRead(conversationId, userId)
+        return this.messageService.markAllAsRead({ conversationId, userId })
     }
 
     @Get('conversations/:id/unread-count')
@@ -82,7 +81,7 @@ export class MessageController {
         @Param('id') conversationId: string,
         @CurrentUser('id') userId: string,
     ) {
-        const count = await this.messageService.getUnreadCount(conversationId, userId)
+        const count = await this.messageService.getUnreadCount({ conversationId, userId })
         return { unreadCount: count }
     }
 
@@ -94,12 +93,14 @@ export class MessageController {
         @Query('page') page?: number,
         @Query('limit') limit?: number,
     ) {
-        return this.messageService.searchMessages(
+        return this.messageService.searchMessages({
             userId,
             workspaceId,
-            searchTerm,
-            page ? parseInt(page.toString()) : 1,
-            limit ? parseInt(limit.toString()) : 20,
-        )
+            query: {
+                q: searchTerm,
+                page: page ? parseInt(page.toString()) : 1,
+                limit: limit ? parseInt(limit.toString()) : 20,
+            },
+        })
     }
 }

@@ -9,6 +9,15 @@ import { ChatOnlineService } from './chat-online.service'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
 import { MessageAttachment } from '../entities/message.entity'
 import { MessageSentEvent } from '../events/message-sent.event'
+import {
+    SendMessage,
+    GetMessages,
+    GetMessagesSince,
+    MarkAsRead,
+    MarkAllAsRead,
+    GetUnreadCount,
+    SearchMessages,
+} from '../interfaces/message.interface'
 
 @Injectable()
 export class MessageService {
@@ -21,12 +30,8 @@ export class MessageService {
         @InjectQueue('notifications') private readonly notificationsQueue: Queue,
     ) { }
 
-    async sendMessage(
-        conversationId: string,
-        senderId: string,
-        content: string,
-        attachments?: MessageAttachment[],
-    ) {
+    async sendMessage(params: SendMessage) {
+        const { conversationId, senderId, content, attachments } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             senderId,
@@ -53,7 +58,7 @@ export class MessageService {
             .filter(p => p.userId !== senderId)
             .map(p => p.userId)
 
-        const onlineUsers = await this.chatOnlineService.getOnlineUsers(recipientIds)
+        const onlineUsers = await this.chatOnlineService.getOnlineUsers({ userIds: recipientIds })
         const offlineUsers = recipientIds.filter(id => !onlineUsers.includes(id))
 
         if (offlineUsers.length > 0) {
@@ -70,12 +75,8 @@ export class MessageService {
         return message
     }
 
-    async getMessages(
-        conversationId: string,
-        userId: string,
-        page: number = 1,
-        limit: number = 50,
-    ) {
+    async getMessages(params: GetMessages) {
+        const { conversationId, userId, query } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -85,14 +86,11 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant')
         }
 
-        return this.messageRepo.getMessages(conversationId, page, limit)
+        return this.messageRepo.getMessages(params)
     }
 
-    async getMessagesSince(
-        conversationId: string,
-        lastMessageId: string,
-        userId: string,
-    ) {
+    async getMessagesSince(params: GetMessagesSince) {
+        const { conversationId, lastMessageId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -105,7 +103,8 @@ export class MessageService {
         return this.messageRepo.getMessagesSince(conversationId, lastMessageId)
     }
 
-    async markAsRead(messageId: string, userId: string) {
+    async markAsRead(params: MarkAsRead) {
+        const { messageId, userId } = params
         const message = await this.messageRepo.findById(messageId)
 
         if (!message) {
@@ -130,7 +129,8 @@ export class MessageService {
         return { success: true }
     }
 
-    async markAllAsRead(conversationId: string, userId: string) {
+    async markAllAsRead(params: MarkAllAsRead) {
+        const { conversationId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -145,7 +145,8 @@ export class MessageService {
         return { success: true }
     }
 
-    async getUnreadCount(conversationId: string, userId: string): Promise<number> {
+    async getUnreadCount(params: GetUnreadCount): Promise<number> {
+        const { conversationId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -155,21 +156,11 @@ export class MessageService {
             return 0
         }
 
-        return this.messageRepo.getUnreadMessages(
-            conversationId,
-            userId,
-            participant.lastReadAt,
-        )
+        return this.messageRepo.getUnreadMessages(params, participant.lastReadAt)
     }
 
-    async searchMessages(
-        userId: string,
-        workspaceId: string,
-        searchTerm: string,
-        page: number = 1,
-        limit: number = 20,
-    ) {
-        return this.messageRepo.searchMessages(userId, workspaceId, searchTerm, page, limit)
+    async searchMessages(params: SearchMessages) {
+        return this.messageRepo.searchMessages(params)
     }
 
     async getMessageById(messageId: string) {
