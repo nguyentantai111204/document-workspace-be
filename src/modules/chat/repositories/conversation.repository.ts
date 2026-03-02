@@ -6,6 +6,7 @@ import { ConversationType } from '../enums/conversation-type.enum'
 import { ConversationQueryDto } from '../dto/conversation-query.dto'
 import { PaginatedResponse } from 'src/common/interfaces/paginated-result.interface'
 import { buildPaginationMeta } from 'src/common/utils/pagination.utils'
+import { CreateDirectConversation, GetUserConversations } from '../interfaces/conversation.interface'
 
 @Injectable()
 export class ConversationRepository {
@@ -29,10 +30,9 @@ export class ConversationRepository {
     }
 
     async findDirectConversation(
-        workspaceId: string,
-        userId1: string,
-        userId2: string,
+        params: CreateDirectConversation,
     ): Promise<Conversation | null> {
+        const { workspaceId, userId1, userId2 } = params
         const query = this.repo
             .createQueryBuilder('c')
             .innerJoin(
@@ -55,10 +55,9 @@ export class ConversationRepository {
     }
 
     async getUserConversations(
-        userId: string,
-        workspaceId: string,
-        query: ConversationQueryDto,
+        params: GetUserConversations,
     ): Promise<PaginatedResponse<Conversation>> {
+        const { userId, workspaceId, query } = params
         const { page = 1, limit = 20, search } = query
         const skip = (page - 1) * limit
 

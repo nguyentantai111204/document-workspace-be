@@ -10,6 +10,17 @@ import { ConversationQueryDto } from '../dto/conversation-query.dto'
 import { ChatOnlineService } from './chat-online.service'
 import { MessageService } from './message.service'
 import { MessageSentEvent } from '../events/message-sent.event'
+import {
+    CreateDirectConversation,
+    CreateGroupConversation,
+    GetUserConversations,
+    GetConversation,
+    UpdateConversation,
+    AddParticipant,
+    LeaveConversation,
+    GetParticipants,
+    GetOnlineParticipants,
+} from '../interfaces/conversation.interface'
 
 @Injectable()
 export class ConversationService {
@@ -21,18 +32,11 @@ export class ConversationService {
         private readonly messageService: MessageService,
     ) { }
 
-    async createDirectConversation(
-        workspaceId: string,
-        userId1: string,
-        userId2: string,
-    ) {
+    async createDirectConversation(params: CreateDirectConversation) {
+        const { workspaceId, userId1, userId2, name } = params
         await this.validateWorkspaceMembership(workspaceId, [userId1, userId2])
 
-        const existing = await this.conversationRepo.findDirectConversation(
-            workspaceId,
-            userId1,
-            userId2,
-        )
+        const existing = await this.conversationRepo.findDirectConversation(params)
 
         if (existing) {
             return existing
@@ -41,6 +45,7 @@ export class ConversationService {
         const conversation = await this.conversationRepo.create({
             workspaceId,
             type: ConversationType.DIRECT,
+            name,
         })
 
         await this.participantRepo.create({
@@ -58,12 +63,8 @@ export class ConversationService {
         return conversation
     }
 
-    async createGroupConversation(
-        workspaceId: string,
-        creatorId: string,
-        name: string,
-        participantIds: string[],
-    ) {
+    async createGroupConversation(params: CreateGroupConversation) {
+        const { workspaceId, creatorId, name, participantIds } = params
         await this.validateWorkspaceMembership(workspaceId, [creatorId])
 
         const allParticipants = Array.from(new Set([creatorId, ...participantIds]))
@@ -94,17 +95,15 @@ export class ConversationService {
         return conversation
     }
 
-    async getUserConversations(
-        userId: string,
-        workspaceId: string,
-        query: ConversationQueryDto,
-    ) {
+    async getUserConversations(params: GetUserConversations) {
+        const { userId, workspaceId, query } = params
         await this.validateWorkspaceMembership(workspaceId, [userId])
 
-        return this.conversationRepo.getUserConversations(userId, workspaceId, query)
+        return this.conversationRepo.getUserConversations(params)
     }
 
-    async getConversationById(conversationId: string, userId: string) {
+    async getConversationById(params: GetConversation) {
+        const { conversationId, userId } = params
         const conversation = await this.conversationRepo.findById(conversationId)
 
         if (!conversation) {
@@ -123,11 +122,8 @@ export class ConversationService {
         return conversation
     }
 
-    async updateConversation(
-        conversationId: string,
-        userId: string,
-        data: { name?: string; avatarUrl?: string },
-    ) {
+    async updateConversation(params: UpdateConversation) {
+        const { conversationId, userId, data } = params
         const conversation = await this.conversationRepo.findById(conversationId)
 
         if (!conversation) {
@@ -145,11 +141,8 @@ export class ConversationService {
         return this.conversationRepo.update(conversationId, data)
     }
 
-    async addParticipant(
-        conversationId: string,
-        newUserId: string,
-        requesterId: string,
-    ) {
+    async addParticipant(params: AddParticipant) {
+        const { conversationId, newUserId, requesterId } = params
         const conversation = await this.conversationRepo.findById(conversationId)
 
         if (!conversation) {
@@ -184,7 +177,8 @@ export class ConversationService {
         })
     }
 
-    async leaveConversation(conversationId: string, userId: string) {
+    async leaveConversation(params: LeaveConversation) {
+        const { conversationId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -197,7 +191,8 @@ export class ConversationService {
         return this.participantRepo.leaveConversation(conversationId, userId)
     }
 
-    async getParticipants(conversationId: string, userId: string) {
+    async getParticipants(params: GetParticipants) {
+        const { conversationId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,
@@ -227,7 +222,8 @@ export class ConversationService {
         return this.conversationRepo.updateLastMessage(conversationId, messageId)
     }
 
-    async getOnlineParticipants(conversationId: string, userId: string) {
+    async getOnlineParticipants(params: GetOnlineParticipants) {
+        const { conversationId, userId } = params
         const participant = await this.participantRepo.findByConversationAndUser(
             conversationId,
             userId,

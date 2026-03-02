@@ -28,7 +28,7 @@ export class ConversationController {
         @CurrentUser('id') userId: string,
         @Query() query: ConversationQueryDto,
     ) {
-        return this.conversationService.getUserConversations(userId, workspaceId, query)
+        return this.conversationService.getUserConversations({ userId, workspaceId, query })
     }
 
     @Post('workspaces/:workspaceId/conversations')
@@ -45,19 +45,20 @@ export class ConversationController {
                 throw new Error('Direct conversation must have exactly 1 other participant')
             }
 
-            return this.conversationService.createDirectConversation(
+            return this.conversationService.createDirectConversation({
                 workspaceId,
-                userId,
-                participantIds[0],
-            )
+                userId1: userId,
+                userId2: participantIds[0],
+                name,
+            })
         } else {
             // Group chat
-            return this.conversationService.createGroupConversation(
+            return this.conversationService.createGroupConversation({
                 workspaceId,
-                userId,
-                name || 'Group Chat',
+                creatorId: userId,
+                name: name || 'Group Chat',
                 participantIds,
-            )
+            })
         }
     }
 
@@ -66,7 +67,7 @@ export class ConversationController {
         @Param('id') id: string,
         @CurrentUser('id') userId: string,
     ) {
-        return this.conversationService.getConversationById(id, userId)
+        return this.conversationService.getConversationById({ conversationId: id, userId })
     }
 
     @Patch('conversations/:id')
@@ -75,7 +76,7 @@ export class ConversationController {
         @CurrentUser('id') userId: string,
         @Body() dto: UpdateConversationDto,
     ) {
-        return this.conversationService.updateConversation(id, userId, dto)
+        return this.conversationService.updateConversation({ conversationId: id, userId, data: dto })
     }
 
     @Delete('conversations/:id/leave')
@@ -83,7 +84,7 @@ export class ConversationController {
         @Param('id') id: string,
         @CurrentUser('id') userId: string,
     ) {
-        await this.conversationService.leaveConversation(id, userId)
+        await this.conversationService.leaveConversation({ conversationId: id, userId })
         return { success: true }
     }
 
@@ -92,7 +93,7 @@ export class ConversationController {
         @Param('id') id: string,
         @CurrentUser('id') userId: string,
     ) {
-        return this.conversationService.getParticipants(id, userId)
+        return this.conversationService.getParticipants({ conversationId: id, userId })
     }
 
     @Post('conversations/:id/participants')
@@ -101,13 +102,17 @@ export class ConversationController {
         @CurrentUser('id') userId: string,
         @Body() dto: AddParticipantDto,
     ) {
-        return this.conversationService.addParticipant(id, dto.userId, userId)
+        return this.conversationService.addParticipant({
+            conversationId: id,
+            newUserId: dto.userId,
+            requesterId: userId,
+        })
     }
     @Get('conversations/:id/online')
     async getOnlineParticipants(
         @Param('id') id: string,
         @CurrentUser('id') userId: string,
     ) {
-        return this.conversationService.getOnlineParticipants(id, userId)
+        return this.conversationService.getOnlineParticipants({ conversationId: id, userId })
     }
 }
