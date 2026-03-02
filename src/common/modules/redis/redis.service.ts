@@ -141,6 +141,24 @@ export class RedisService implements OnModuleDestroy {
         }
     }
 
+    async scard(key: string): Promise<number> {
+        try {
+            return await this.redis.scard(key);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, returning 0 for scard ${key}`);
+            return 0;
+        }
+    }
+
+    async expire(key: string, ttl: number): Promise<number> {
+        try {
+            return await this.redis.expire(key, ttl);
+        } catch (error) {
+            this.logger.warn(`Redis unavailable, skipping expire for key ${key}`);
+            return 0;
+        }
+    }
+
     async mget(keys: string[]): Promise<(string | null)[]> {
         if (!keys || keys.length === 0) return []
         try {
