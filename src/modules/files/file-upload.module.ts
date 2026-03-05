@@ -1,32 +1,26 @@
 import { Module } from "@nestjs/common";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { FileEntity } from "./entities/file.entity";
 import { CloudinaryProvider } from "./providers/cloudinary.provider";
 import { FileStorageService } from "./services/file-storage.service";
 import { CloudinaryStorageService } from "./services/cloudinary-storage.service";
-import { FileService } from "./services/file.service";
-import { FileController } from "./controller/file.controller";
-import { GenericFileController } from "./controller/generic-file.controller";
 import { FileValidationService } from "./services/file-validation.service";
-import { WorkspaceModule } from "../workspaces/workspace.module";
+import { FileService } from "./services/file.service";
 import { FileRepository } from "./repositories/file.repository";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { FileEntity } from "./entities/file.entity";
 import { RedisModule } from "src/common/modules/redis/redis.module";
-import { PermissionModule } from "../permission/permission.module";
-
 
 @Module({
-    imports: [TypeOrmModule.forFeature([FileEntity]), WorkspaceModule, RedisModule, PermissionModule],
+    imports: [TypeOrmModule.forFeature([FileEntity]), RedisModule],
     providers: [
         CloudinaryProvider,
         {
             provide: FileStorageService,
             useClass: CloudinaryStorageService,
         },
-        FileService,
         FileValidationService,
+        FileService,
         FileRepository,
     ],
-    controllers: [FileController, GenericFileController],
     exports: [FileService, FileValidationService],
 })
-export class FileModule { }
+export class FileUploadModule { }

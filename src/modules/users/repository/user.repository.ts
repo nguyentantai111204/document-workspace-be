@@ -22,7 +22,8 @@ export class UsersRepository {
       .leftJoinAndSelect('rp.permission', 'perm')
       .where('user.id = :id', { id })
       .select([
-        'user.id', 'user.email', 'user.fullName', 'user.avatarUrl', 'user.status',
+        'user.id', 'user.email', 'user.fullName', 'user.avatarUrl',
+        'user.phoneNumber', 'user.address', 'user.status',
         'ur.roleId',
         'role.code', 'role.description',
         'rp.id',
@@ -35,7 +36,7 @@ export class UsersRepository {
   findByEmail(email: string) {
     return this.repo.findOne({
       where: { email },
-      select: ['id', 'email', 'fullName', 'avatarUrl', 'status'],
+      select: ['id', 'email', 'fullName', 'avatarUrl', 'phoneNumber', 'address', 'status'],
     })
   }
 
@@ -59,6 +60,10 @@ export class UsersRepository {
 
   updatePassword(id: string, passwordHash: string) {
     return this.repo.update(id, { password: passwordHash })
+  }
+
+  updateProfile(id: string, data: Partial<Pick<User, 'fullName' | 'avatarUrl' | 'phoneNumber' | 'address'>>) {
+    return this.repo.update(id, data)
   }
 
   async searchUsers(

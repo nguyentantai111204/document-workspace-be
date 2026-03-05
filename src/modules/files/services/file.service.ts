@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import slugify from "slugify"
-import { FileStorageService } from "./file-storage.service"
+import { FileStorageService, UploadResult } from "./file-storage.service"
 import { FileStatus } from "../enums/file-status.enum"
 import { FileValidationService } from "./file-validation.service"
 import { BadRequestError } from "src/common/exceptions/bad-request.exception"
@@ -75,6 +75,36 @@ export class FileService {
         )
 
         return results
+    }
+
+    /**
+     * Generic upload — chỉ upload lên cloud storage, KHÔNG tạo DB record.
+     * Caller tự quyết định dùng kết quả (url, publicId...) để lưu ở đâu.
+     */
+    async uploadRaw(
+        file: Express.Multer.File,
+        folder = 'uploads',
+    ): Promise<UploadResult & { name: string }> {
+        if (!file) {
+            throw new BadRequestError('Không có file nào được gửi lên')
+        }
+
+        const validated = await this.validator.validate(file)
+
+        const originalName = file.originalname
+        const lastDotIndex = originalName.lastIndexOf('.')
+        const baseName = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName
+        const ext = lastDotIndex !== -1 ? originalName.substring(lastDotIndex) : ''
+        const slug = slugify(baseName, { lower: true, locale: 'vi' })
+        file.originalname = `${slug}${ext}`
+
+        const uploaded = await this.storage.upload(file, folder)
+
+        return {
+            ...uploaded,
+            mimeType: validated.mimeType,
+            name: file.originalname,
+        }
     }
 
     async uploadFile(params: {

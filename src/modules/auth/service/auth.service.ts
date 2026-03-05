@@ -72,14 +72,12 @@ export class AuthService {
   async login(user: Partial<User>, deviceId?: string) {
     const tokens = await this.issueTokens(user, deviceId)
 
+    // Lấy full profile (bao gồm phoneNumber, address và các field mới về sau)
+    const fullUser = await this.usersService.findById(user.id!)
+
     return {
       ...tokens,
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        avatarUrl: user.avatarUrl,
-      },
+      user: fullUser,
     }
   }
 

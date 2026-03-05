@@ -6,9 +6,10 @@ import { UsersService } from "./service/user.service";
 import { UsersController } from "./controllers/users.controller";
 import { KeyTokenModule } from "../key-token/key-token.module";
 import { RedisModule } from "src/common/modules/redis/redis.module";
+import { FileUploadModule } from "../files/file-upload.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User]), KeyTokenModule, RedisModule],
+    imports: [TypeOrmModule.forFeature([User]), KeyTokenModule, RedisModule, FileUploadModule],
     providers: [UsersService, UsersRepository],
     controllers: [UsersController],
     exports: [UsersService, UsersRepository], // cho Auth, Workspace

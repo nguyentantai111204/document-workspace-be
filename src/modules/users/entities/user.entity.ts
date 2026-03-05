@@ -17,6 +17,12 @@ export class User extends BaseEntity {
   @Column({ name: 'avatar_url', nullable: true })
   avatarUrl?: string
 
+  @Column({ name: 'phone_number', nullable: true })
+  phoneNumber?: string
+
+  @Column({ nullable: true })
+  address?: string
+
   @Column({
     type: 'enum',
     enum: UserStatus,
