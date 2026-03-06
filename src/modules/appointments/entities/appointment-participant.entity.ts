@@ -10,7 +10,7 @@ export class AppointmentParticipant extends BaseEntity {
     appointmentId: string
 
     @Column({ name: 'user_id', type: 'uuid' })
-    @Index(['appointmentId', 'userId'], { unique: true })
+    @Index()
     userId: string
 
     @Column({ name: 'role', type: 'enum', enum: AppointmentParticipantRole, default: AppointmentParticipantRole.PARTICIPANT })

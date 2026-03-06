@@ -19,8 +19,6 @@ import { FileQueryDto } from "../dto/file-query.dto";
 import { UpdateFileDto } from "../dto/update-file.dto";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { PermissionGuard } from 'src/modules/permission/guards/permission.guard';
-import { Permissions } from 'src/common/decorators/permission.decorator';
-import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum';
 
 @ApiTags('Files')
 @ApiBearerAuth()
