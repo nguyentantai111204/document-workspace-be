@@ -5,6 +5,8 @@ import { AppointmentReminderRepository } from '../repositories/appointment-remin
 import { CreateAppointmentDto } from '../dto/appointment.dto';
 import { Appointment } from '../entities/appointment.entity';
 import { AppointmentParticipantRole } from '../enums/appointment-participant.enum';
+import { NotificationService } from 'src/modules/notifications/services/notification.service';
+import { NotificationType } from 'src/modules/notifications/enums/notification-type.enum';
 
 @Injectable()
 export class AppointmentService {
@@ -12,13 +14,14 @@ export class AppointmentService {
         private readonly appointmentRepo: AppointmentRepository,
         private readonly participantRepo: AppointmentParticipantRepository,
         private readonly reminderRepo: AppointmentReminderRepository,
+        private readonly notificationService: NotificationService,
     ) { }
 
     async createAppointment(
         dto: CreateAppointmentDto,
         creatorId: string,
         workspaceId: string,
-    ): Promise<Appointment> {
+    ) {
         const appointment = await this.appointmentRepo.createAppointment({
             workspaceId,
             title: dto.title,
@@ -51,6 +54,25 @@ export class AppointmentService {
                 minutesBefore: dto.reminder.minutesBefore,
                 targetMode: dto.reminder.targetMode,
             }]);
+        }
+
+        if (participantUserIds.size > 0) {
+            for (const participant of participantsToCreate) {
+                if (participant.userId !== creatorId) {
+                    await this.notificationService.create({
+                        recipientId: participant.userId,
+                        senderId: creatorId,
+                        type: NotificationType.APPOINTMENT,
+                        title: 'Lời mời tham gia cuộc hẹn',
+                        body: `${creatorId} đã mời bạn tham gia cuộc hẹn "${appointment.title}"`,
+                        data: {
+                            appointmentId: appointment.id,
+                            appointmentTitle: appointment.title,
+                            inviterName: creatorId,
+                        }
+                    });
+                }
+            }
         }
 
         return appointment;

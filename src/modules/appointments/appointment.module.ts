@@ -9,6 +9,7 @@ import { AppointmentRepository } from './repositories/appointment.repository';
 import { AppointmentParticipantRepository } from './repositories/appointment-participant.repository';
 import { AppointmentReminderRepository } from './repositories/appointment-reminder.repository';
 import { WorkspaceModule } from '../workspaces/workspace.module';
+import { NotificationModule } from '../notifications/notification.module';
 
 @Module({
     imports: [
@@ -18,6 +19,7 @@ import { WorkspaceModule } from '../workspaces/workspace.module';
             AppointmentReminder,
         ]),
         WorkspaceModule,
+        NotificationModule,
     ],
     controllers: [AppointmentController],
     providers: [
