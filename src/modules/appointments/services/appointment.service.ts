@@ -44,15 +44,13 @@ export class AppointmentService {
         await this.participantRepo.createParticipants(participantsToCreate);
 
         // Create reminders
-        if (dto.reminders?.length) {
-            await this.reminderRepo.createReminders(
-                dto.reminders.map((r) => ({
-                    appointmentId: appointment.id,
-                    startTime: appointment.startTime,
-                    minutesBefore: r.minutesBefore,
-                    targetMode: r.targetMode,
-                })),
-            );
+        if (dto.reminder) {
+            await this.reminderRepo.createReminders([{
+                appointmentId: appointment.id,
+                startTime: appointment.startTime,
+                minutesBefore: dto.reminder.minutesBefore,
+                targetMode: dto.reminder.targetMode,
+            }]);
         }
 
         return appointment;

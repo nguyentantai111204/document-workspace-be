@@ -44,11 +44,6 @@ export class PermissionSeed {
       [PermissionCode.PERMISSION_ASSIGN]: 'Phân quyền',
       [PermissionCode.WORKSPACE_READ]: 'Xem danh sách không gian làm việc',
       [PermissionCode.WORKSPACE_CREATE]: 'Tạo không gian làm việc',
-
-      [PermissionCode.APPOINTMENT_CREATE]: 'Tạo cuộc hẹn',
-      [PermissionCode.APPOINTMENT_READ]: 'Xem cuộc hẹn',
-      [PermissionCode.APPOINTMENT_UPDATE]: 'Cập nhật cuộc hẹn',
-      [PermissionCode.APPOINTMENT_DELETE]: 'Xóa cuộc hẹn',
     }
     return descriptions[code] || code
   }

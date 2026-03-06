@@ -1,7 +1,6 @@
 import {
     Body,
     Controller,
-    Get,
     Param,
     ParseUUIDPipe,
     Post,
@@ -13,7 +12,6 @@ import {
     ApiBody,
     ApiOperation,
     ApiParam,
-    ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
 
@@ -21,20 +19,19 @@ import { AppointmentService } from '../services/appointment.service';
 import { CreateAppointmentDto } from '../dto/appointment.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { WorkspaceGuard } from 'src/common/guards/workspace.guard';
-import { PermissionGuard } from 'src/modules/permission/guards/permission.guard';
-import { Permissions } from 'src/common/decorators/permission.decorator';
-import { PermissionCode } from 'src/modules/permission/enums/permission-code.enum';
+import { WorkspacePolicyGuard } from 'src/common/guards/workspace-action.guard';
+import { WorkspaceActionPermission } from 'src/common/decorators/workspace-action.decorator';
+import { WorkspaceAction } from 'src/modules/workspaces/enums/workspace-action.enum';
 
 @ApiTags('Appointments')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), PermissionGuard)
-@Controller('workspaces/:workspaceId/appointments')
+@UseGuards(AuthGuard('jwt'), WorkspaceGuard, WorkspacePolicyGuard)
+@Controller('workspace/:workspaceId/appointments')
 export class AppointmentController {
     constructor(private readonly appointmentService: AppointmentService) { }
 
     @Post()
-    @UseGuards(WorkspaceGuard)
-    @Permissions(PermissionCode.APPOINTMENT_CREATE)
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_CREATE)
     @ApiOperation({ summary: 'Tạo cuộc hẹn mới trong workspace' })
     @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
     @ApiBody({ type: CreateAppointmentDto })

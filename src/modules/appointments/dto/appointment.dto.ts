@@ -1,4 +1,4 @@
-import { IsArray, IsDate, IsNotEmpty, IsOptional, IsString, IsUUID, ArrayNotEmpty, ValidateNested, IsEnum } from 'class-validator';
+import { IsDate, IsNotEmpty, IsOptional, IsString, IsUUID, ArrayNotEmpty, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AppointmentReminderTargetMode, MinutesBefore } from '../enums/appointment-remider.enum';
 
@@ -39,8 +39,7 @@ export class CreateAppointmentDto {
     participants: CreateAppointmentParticipantDto[];
 
     @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
+    @ValidateNested()
     @Type(() => CreateAppointmentReminderDto)
-    reminders?: CreateAppointmentReminderDto[];
+    reminder?: CreateAppointmentReminderDto;
 }

@@ -13,6 +13,10 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
         WorkspaceAction.READ_FILE,
         WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
+        WorkspaceAction.APPOINTMENT_CREATE,
+        WorkspaceAction.APPOINTMENT_READ,
+        WorkspaceAction.APPOINTMENT_UPDATE,
+        WorkspaceAction.APPOINTMENT_DELETE,
     ],
 
     ADMIN: [
@@ -22,6 +26,10 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
         WorkspaceAction.READ_FILE,
         WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
+        WorkspaceAction.APPOINTMENT_CREATE,
+        WorkspaceAction.APPOINTMENT_READ,
+        WorkspaceAction.APPOINTMENT_UPDATE,
+        WorkspaceAction.APPOINTMENT_DELETE,
     ],
 
     MEMBER: [
@@ -29,10 +37,13 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
         WorkspaceAction.READ_FILE,
         WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
+        WorkspaceAction.APPOINTMENT_CREATE,
+        WorkspaceAction.APPOINTMENT_READ,
     ],
 
     VIEWER: [
         WorkspaceAction.READ_FILE,
+        WorkspaceAction.APPOINTMENT_READ,
     ],
 }
 
