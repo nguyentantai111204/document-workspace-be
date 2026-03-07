@@ -32,7 +32,7 @@ export class NotificationRepository {
         }
     }
 
-    async countUnread(userId: string): Promise<number> {
+    countUnread(userId: string) {
         return this.repo.count({
             where: { recipientId: userId, isRead: false },
         })
@@ -42,11 +42,11 @@ export class NotificationRepository {
         return this.repo.save(this.repo.create(data))
     }
 
-    async markAsRead(id: string, userId: string) {
+    markAsRead(id: string, userId: string) {
         return this.repo.update({ id, recipientId: userId }, { isRead: true })
     }
 
-    async markAllAsRead(userId: string) {
+    markAllAsRead(userId: string) {
         return this.repo.update({ recipientId: userId, isRead: false }, { isRead: true })
     }
 }

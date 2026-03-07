@@ -17,9 +17,8 @@ export class MessageRepository {
         return this.repo.findOne({ where: { id, deletedAt: IsNull() } })
     }
 
-    async create(data: Partial<Message>) {
-        const message = this.repo.create(data)
-        return this.repo.save(message)
+    create(data: Partial<Message>) {
+        return this.repo.save(this.repo.create(data))
     }
 
     async getMessages(
@@ -46,10 +45,10 @@ export class MessageRepository {
         }
     }
 
-    async getUnreadMessages(
+    getUnreadMessages(
         params: GetUnreadCount,
         lastReadAt?: Date,
-    ): Promise<number> {
+    ) {
         const { conversationId, userId } = params
         const qb = this.repo
             .createQueryBuilder('m')

@@ -18,23 +18,18 @@ export class UserDeviceRepository {
             device.lastActiveAt = new Date()
             if (deviceType) device.deviceType = deviceType
         } else {
-            device = this.repo.create({
-                userId,
-                deviceId,
-                fcmToken: token,
-                deviceType,
-            })
+            device = this.repo.create({ userId, deviceId, fcmToken: token, deviceType })
         }
 
         return this.repo.save(device)
     }
 
-    async getTokensByUser(userId: string): Promise<string[]> {
+    async getTokensByUser(userId: string) {
         const devices = await this.repo.find({ where: { userId } })
         return devices.map(d => d.fcmToken)
     }
 
-    async removeToken(token: string) {
+    removeToken(token: string) {
         return this.repo.delete({ fcmToken: token })
     }
 }

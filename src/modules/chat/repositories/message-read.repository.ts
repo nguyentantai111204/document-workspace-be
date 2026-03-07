@@ -15,32 +15,21 @@ export class MessageReadRepository {
             where: { messageId, userId },
         })
 
-        if (existing) {
-            return existing
-        }
+        if (existing) return existing
 
-        const messageRead = this.repo.create({
-            messageId,
-            userId,
-        })
-
-        return this.repo.save(messageRead)
+        return this.repo.save(this.repo.create({ messageId, userId }))
     }
 
-    async getReadReceipts(messageId: string): Promise<MessageRead[]> {
-        return this.repo.find({
-            where: { messageId },
-        })
+    getReadReceipts(messageId: string) {
+        return this.repo.find({ where: { messageId } })
     }
 
-    async hasUserReadMessage(messageId: string, userId: string): Promise<boolean> {
-        const count = await this.repo.count({
-            where: { messageId, userId },
-        })
+    async hasUserReadMessage(messageId: string, userId: string) {
+        const count = await this.repo.count({ where: { messageId, userId } })
         return count > 0
     }
 
-    async markMultipleAsRead(messageIds: string[], userId: string) {
+    markMultipleAsRead(messageIds: string[], userId: string) {
         const reads = messageIds.map((messageId) =>
             this.repo.create({ messageId, userId }),
         )

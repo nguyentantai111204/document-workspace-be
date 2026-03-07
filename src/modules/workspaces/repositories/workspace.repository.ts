@@ -30,7 +30,7 @@ export class WorkspaceRepository {
         )
     }
 
-    async updateWorkspace(
+    updateWorkspace(
         workspaceId: string,
         name: string,
     ) {

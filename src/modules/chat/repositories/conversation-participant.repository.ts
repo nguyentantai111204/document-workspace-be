@@ -11,15 +11,11 @@ export class ConversationParticipantRepository {
         private readonly repo: Repository<ConversationParticipant>,
     ) { }
 
-    async create(data: Partial<ConversationParticipant>) {
-        const participant = this.repo.create(data)
-        return this.repo.save(participant)
+    create(data: Partial<ConversationParticipant>) {
+        return this.repo.save(this.repo.create(data))
     }
 
-    async findByConversationAndUser(
-        conversationId: string,
-        userId: string,
-    ): Promise<ConversationParticipant | null> {
+    findByConversationAndUser(conversationId: string, userId: string) {
         return this.repo.findOne({
             where: {
                 conversationId,
@@ -30,7 +26,7 @@ export class ConversationParticipantRepository {
         })
     }
 
-    async getParticipants(conversationId: string): Promise<ConversationParticipant[]> {
+    getParticipants(conversationId: string) {
         return this.repo.find({
             where: {
                 conversationId,
@@ -40,28 +36,28 @@ export class ConversationParticipantRepository {
         })
     }
 
-    async updateLastReadAt(conversationId: string, userId: string) {
+    updateLastReadAt(conversationId: string, userId: string) {
         return this.repo.update(
             { conversationId, userId },
             { lastReadAt: new Date() },
         )
     }
 
-    async leaveConversation(conversationId: string, userId: string) {
+    leaveConversation(conversationId: string, userId: string) {
         return this.repo.update(
             { conversationId, userId },
             { leftAt: new Date() },
         )
     }
 
-    async updateRole(conversationId: string, userId: string, role: ConversationRole) {
+    updateRole(conversationId: string, userId: string, role: ConversationRole) {
         return this.repo.update(
             { conversationId, userId },
             { role },
         )
     }
 
-    async toggleMute(conversationId: string, userId: string, isMuted: boolean) {
+    toggleMute(conversationId: string, userId: string, isMuted: boolean) {
         return this.repo.update(
             { conversationId, userId },
             { isMuted },

@@ -19,7 +19,7 @@ export class ConversationRepository {
         return this.repo.findOne({ where: { id, deletedAt: IsNull() } })
     }
 
-    async create(data: Partial<Conversation>) {
+    create(data: Partial<Conversation>) {
         const conversation = this.repo.create(data)
         return this.repo.save(conversation)
     }
@@ -29,9 +29,9 @@ export class ConversationRepository {
         return this.findById(id)
     }
 
-    async findDirectConversation(
+    findDirectConversation(
         params: CreateDirectConversation,
-    ): Promise<Conversation | null> {
+    ) {
         const { workspaceId, userId1, userId2, name } = params
         const query = this.repo
             .createQueryBuilder('c')
@@ -60,7 +60,7 @@ export class ConversationRepository {
         return query.getOne()
     }
 
-    async findGroupByName(workspaceId: string, name: string): Promise<Conversation | null> {
+    findGroupByName(workspaceId: string, name: string) {
         return this.repo.findOne({
             where: {
                 workspaceId,
@@ -112,7 +112,7 @@ export class ConversationRepository {
         }
     }
 
-    async updateLastMessage(conversationId: string, messageId: string) {
+    updateLastMessage(conversationId: string, messageId: string) {
         return this.repo.update(conversationId, {
             lastMessageId: messageId,
             lastMessageAt: new Date(),

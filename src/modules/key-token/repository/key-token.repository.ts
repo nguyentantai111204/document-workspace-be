@@ -10,16 +10,16 @@ export class KeyTokenRepository {
         private readonly repo: Repository<KeyToken>,
     ) { }
 
-    async createKeyToken(data: Partial<KeyToken>) {
-        return await this.repo.save(this.repo.create(data));
+    createKeyToken(data: Partial<KeyToken>) {
+        return this.repo.save(this.repo.create(data));
     }
 
-    async findByRefreshToken(refreshToken: string) {
-        return await this.repo.findOne({ where: { refreshToken, isRevoked: false } });
+    findByRefreshToken(refreshToken: string) {
+        return this.repo.findOne({ where: { refreshToken, isRevoked: false } });
     }
 
-    async deleteById(id: string) {
-        return await this.repo.delete(id);
+    deleteById(id: string) {
+        return this.repo.delete(id);
     }
 
     revokeToken(id: string) {
