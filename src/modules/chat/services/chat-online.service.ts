@@ -10,6 +10,7 @@ import {
 } from '../interfaces/chat-online.interface'
 
 const PRESENCE_TTL = 60
+const SOCKET_TTL = 86400
 
 @Injectable()
 export class ChatOnlineService {
@@ -20,7 +21,8 @@ export class ChatOnlineService {
         const { userId, socketId } = params
 
         await this.redisService.sadd(`chat:user_sockets:${userId}`, socketId)
-        await this.redisService.set(`chat:socket:${socketId}`, userId)
+        await this.redisService.expire(`chat:user_sockets:${userId}`, SOCKET_TTL)
+        await this.redisService.set(`chat:socket:${socketId}`, userId, SOCKET_TTL)
 
         await this.redisService.set(`chat:presence:${userId}`, '1', PRESENCE_TTL)
     }
