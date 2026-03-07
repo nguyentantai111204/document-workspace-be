@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
-import { UsersRepository } from "./repository/user.repository";
-import { UsersService } from "./service/user.service";
+import { UsersRepository } from "./repositories/user.repository";
+import { UsersService } from "./services/user.service";
 import { UsersController } from "./controllers/users.controller";
 import { KeyTokenModule } from "../key-token/key-token.module";
 import { RedisModule } from "src/common/modules/redis/redis.module";

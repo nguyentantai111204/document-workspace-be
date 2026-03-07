@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { RoleRepository } from '../repository/role.repository'
-import { UserRoleRepository } from '../repository/user-role.repository'
+import { RoleRepository } from '../repositories/role.repository'
+import { UserRoleRepository } from '../repositories/user-role.repository'
 import { RedisService } from 'src/common/modules/redis/redis.service'
 
 @Injectable()

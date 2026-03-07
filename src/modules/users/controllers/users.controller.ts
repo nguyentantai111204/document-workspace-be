@@ -11,7 +11,7 @@ import { ChangePasswordDto } from "../dto/change-password.dto";
 import { UpdateProfileDto } from "../dto/update-user.dto";
 import { User } from "../entities/user.entity";
 import { AuthGuard } from "@nestjs/passport";
-import { UsersService } from "../service/user.service";
+import { UsersService } from "../services/user.service";
 import { BypassResponseFormat } from "src/common/interceptors/bypass-response-format.interceptor";
 import { SearchUsersDto } from "../dto/search-users.dto";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";

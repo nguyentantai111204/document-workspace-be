@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
-import { UsersService } from 'src/modules/users/service/user.service'
+import { UsersService } from 'src/modules/users/services/user.service'
 import { randomUUID } from 'crypto'
 import { calcRefreshTokenExpireTime } from 'src/common/utils/day-time.utils'
 import { KeyTokenService } from 'src/modules/key-token/service/key-token.service'

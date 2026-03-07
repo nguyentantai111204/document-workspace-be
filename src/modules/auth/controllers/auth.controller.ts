@@ -4,7 +4,7 @@ import {
 import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { AuthService } from '../service/auth.service';
+import { AuthService } from '../services/auth.service';
 import { AuthCookieHelper } from '../utils/auth-cookie.helper';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RefreshTokenGuard } from '../guards/refresh-token.guard';

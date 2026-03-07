@@ -5,8 +5,8 @@ import { Permission } from './entities/permission.entity'
 import { UserRole } from './entities/user-role.entity'
 import { RolePermission } from './entities/role-permission.entity'
 import { PermissionService } from './services/permission.service'
-import { RoleRepository } from './repository/role.repository'
-import { UserRoleRepository } from './repository/user-role.repository'
+import { RoleRepository } from './repositories/role.repository'
+import { UserRoleRepository } from './repositories/user-role.repository'
 import { RedisModule } from 'src/common/modules/redis/redis.module'
 
 @Module({
