@@ -98,6 +98,10 @@ export class UsersRepository {
   createUser(data: Partial<User>) {
     return this.repo.save(this.repo.create(data))
   }
+
+  softDelete(id: string) {
+    return this.repo.softDelete(id)
+  }
 }
 
 

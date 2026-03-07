@@ -36,11 +36,12 @@ export class ConversationParticipantRepository {
         })
     }
 
-    updateLastReadAt(conversationId: string, userId: string) {
-        return this.repo.update(
-            { conversationId, userId },
-            { lastReadAt: new Date() },
-        )
+    updateLastRead(conversationId: string, userId: string, messageId?: string) {
+        const updateData: Partial<ConversationParticipant> = { lastReadAt: new Date() }
+        if (messageId) {
+            updateData.lastReadMessageId = messageId
+        }
+        return this.repo.update({ conversationId, userId }, updateData)
     }
 
     leaveConversation(conversationId: string, userId: string) {

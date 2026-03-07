@@ -4,6 +4,7 @@ import { BadRequestError } from "src/common/exceptions/bad-request.exception"
 import { ListMembersQueryDto } from "../dto/workspace-member-filter.dto"
 import { WorkspaceMemberRepository } from "../repositories/workspace-memeber.repository"
 import { RedisService } from "src/common/modules/redis/redis.service"
+import { OnEvent } from '@nestjs/event-emitter'
 
 @Injectable()
 export class WorkspaceMemberService {
@@ -165,5 +166,10 @@ export class WorkspaceMemberService {
         await this.redisService.del(`workspace:${workspaceId}:member:${newOwnerId}`);
     }
 
+    @OnEvent('user.deleted')
+    async handleUserDeleted(payload: { userId: string }) {
+        await this.memberRepo.softRemoveByUserId(payload.userId)
+        // TODO: Could additionally cleanup Redis caches for this user across workspaces if needed.
+    }
 }
 

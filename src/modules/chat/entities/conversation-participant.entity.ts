@@ -29,6 +29,9 @@ export class ConversationParticipant extends BaseEntity {
     @Column({ name: 'last_read_at', type: 'timestamp', nullable: true })
     lastReadAt?: Date
 
+    @Column({ name: 'last_read_message_id', type: 'uuid', nullable: true })
+    lastReadMessageId?: string
+
     @Column({ name: 'is_muted', default: false })
     isMuted: boolean
 }

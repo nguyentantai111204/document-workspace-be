@@ -112,6 +112,13 @@ export class WorkspaceMemberRepository {
         )
     }
 
+    softRemoveByUserId(userId: string) {
+        return this.repo.update(
+            { userId },
+            { status: 'removed' }
+        )
+    }
+
     listAllByWorkspace(workspaceId: string) {
         return this.repo.find({ where: { workspaceId } })
     }

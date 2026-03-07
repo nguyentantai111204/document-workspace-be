@@ -3,7 +3,6 @@ import { InjectQueue } from '@nestjs/bull'
 import type { Queue } from 'bull'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { MessageRepository } from '../repositories/message.repository'
-import { MessageReadRepository } from '../repositories/message-read.repository'
 import { ConversationParticipantRepository } from '../repositories/conversation-participant.repository'
 import { ChatOnlineService } from './chat-online.service'
 import { BadRequestError } from 'src/common/exceptions/bad-request.exception'
@@ -23,7 +22,6 @@ import {
 export class MessageService {
     constructor(
         private readonly messageRepo: MessageRepository,
-        private readonly messageReadRepo: MessageReadRepository,
         private readonly participantRepo: ConversationParticipantRepository,
         private readonly chatOnlineService: ChatOnlineService,
         private readonly eventEmitter: EventEmitter2,
@@ -124,7 +122,7 @@ export class MessageService {
             return { success: true }
         }
 
-        await this.messageReadRepo.markAsRead(messageId, userId)
+        await this.participantRepo.updateLastRead(message.conversationId, userId, messageId)
 
         return { success: true }
     }
@@ -140,7 +138,7 @@ export class MessageService {
             throw new ForbiddenException('You are not a participant')
         }
 
-        await this.participantRepo.updateLastReadAt(conversationId, userId)
+        await this.participantRepo.updateLastRead(conversationId, userId)
 
         return { success: true }
     }

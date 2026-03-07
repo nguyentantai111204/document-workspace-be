@@ -30,7 +30,6 @@ export class MessageRepository {
 
         const qb = this.repo
             .createQueryBuilder('m')
-            .leftJoinAndSelect('m.reads', 'reads')
             .where('m.conversation_id = :conversationId', { conversationId })
             .andWhere('m.deletedAt IS NULL')
             .orderBy('m.createdAt', 'ASC')
@@ -109,7 +108,6 @@ export class MessageRepository {
             },
             order: { createdAt: 'ASC' },
             take: limit,
-            relations: ['reads'],
         })
     }
 }

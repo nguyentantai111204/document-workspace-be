@@ -7,14 +7,12 @@ import { NotificationsProcessor } from './processors/notifications.processor'
 import { Conversation } from './entities/conversation.entity'
 import { ConversationParticipant } from './entities/conversation-participant.entity'
 import { Message } from './entities/message.entity'
-import { MessageRead } from './entities/message-read.entity'
 import { UserDevice } from '../notifications/entities/user-device.entity'
 import { User } from '../users/entities/user.entity'
 
 import { ConversationRepository } from './repositories/conversation.repository'
 import { ConversationParticipantRepository } from './repositories/conversation-participant.repository'
 import { MessageRepository } from './repositories/message.repository'
-import { MessageReadRepository } from './repositories/message-read.repository'
 import { UserDeviceRepository } from '../notifications/repositories/user-device.repository'
 
 import { ConversationService } from './services/conversation.service'
@@ -36,7 +34,6 @@ import { FirebaseModule } from 'src/common/modules/firebase/firebase.module'
             Conversation,
             ConversationParticipant,
             Message,
-            MessageRead,
             UserDevice,
             User,
         ]),
@@ -53,7 +50,6 @@ import { FirebaseModule } from 'src/common/modules/firebase/firebase.module'
         ConversationRepository,
         ConversationParticipantRepository,
         MessageRepository,
-        MessageReadRepository,
         UserDeviceRepository,
 
         // Services

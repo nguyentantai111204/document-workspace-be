@@ -11,6 +11,7 @@ import { RedisService } from "src/common/modules/redis/redis.service"
 import { User } from "../entities/user.entity"
 import { FileService } from "src/modules/files/services/file.service"
 import { UpdateProfileDto } from "../dto/update-user.dto"
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
         private readonly keyTokenService: KeyTokenService,
         private readonly redisService: RedisService,
         private readonly fileService: FileService,
+        private readonly eventEmitter: EventEmitter2,
     ) { }
 
     async findByEmailForAuth(email: string) {
@@ -128,6 +130,12 @@ export class UsersService {
         await this.redisService.del(`users:profile:${userId}`);
 
         return result
+    }
+
+    async deleteUser(userId: string) {
+        await this.usersRepo.softDelete(userId)
+        await this.redisService.del(`users:profile:${userId}`)
+        this.eventEmitter.emit('user.deleted', { userId })
     }
 }
 
