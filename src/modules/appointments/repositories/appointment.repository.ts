@@ -34,15 +34,15 @@ export class AppointmentRepository {
         return this.repo.update(id, { status });
     }
 
-    async getAppointmentByWorkspaceAndUserId(workspaceId: string, userId: string, page: number, limit: number) {
-        const [data, total] = await this.repo.findAndCount({
-            where: { workspaceId, createdBy: userId },
-            skip: (page - 1) * limit,
-            take: limit,
-            order: { startTime: 'DESC' }
-        });
-
-        return { data, total };
+    async getAppointmentsByDateRange(workspaceId: string, userId: string, startDate: Date, endDate: Date) {
+        return this.repo
+            .createQueryBuilder('appointment')
+            .where('appointment.workspaceId = :workspaceId', { workspaceId })
+            .andWhere('appointment.createdBy = :userId', { userId })
+            .andWhere('appointment.startTime >= :startDate', { startDate })
+            .andWhere('appointment.startTime <= :endDate', { endDate })
+            .orderBy('appointment.startTime', 'ASC')
+            .getMany();
     }
 
     remove(id: string) {

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { CreateAppointmentDto, GetAppointmentsDto } from '../dto/appointment.dto';
 import { Appointment } from '../entities/appointment.entity';
-import { buildPaginationMeta } from 'src/common/utils/pagination.utils';
 import { NotFoundException } from '@nestjs/common';
 import { AppointmentParticipantService } from './appointment-participant.service';
 import { AppointmentReminderService } from './appointment-reminder.service';
@@ -55,18 +54,24 @@ export class AppointmentService {
     }
 
     async getAppointmentByWorkspaceAndUserId(workspaceId: string, userId: string, dto: GetAppointmentsDto) {
-        const { page = 1, limit = 20 } = dto;
-        const { data, total } = await this.appointmentRepo.getAppointmentByWorkspaceAndUserId(
+        const { startDate, endDate } = dto;
+        const appointments = await this.appointmentRepo.getAppointmentsByDateRange(
             workspaceId,
             userId,
-            page,
-            limit
+            startDate,
+            endDate
         );
 
-        return {
-            items: data,
-            meta: buildPaginationMeta(page, limit, total)
-        };
+        const groupedData = appointments.reduce((acc, current) => {
+            const dateStr = current.startTime.toISOString().split('T')[0];
+            if (!acc[dateStr]) {
+                acc[dateStr] = [];
+            }
+            acc[dateStr].push(current);
+            return acc;
+        }, {} as Record<string, Appointment[]>);
+
+        return groupedData;
     }
 
     async getAppointmentById(workspaceId: string, id: string) {
