@@ -14,6 +14,9 @@ export class Appointment extends BaseEntity {
     @Column({ name: 'description', type: 'text', nullable: true })
     description?: string
 
+    @Column({ name: 'url', type: 'varchar', nullable: true })
+    url?: string
+
     @Column({ name: 'start_time', type: 'timestamp' })
     startTime: Date
 

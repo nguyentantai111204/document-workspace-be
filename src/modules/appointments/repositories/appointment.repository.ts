@@ -24,7 +24,28 @@ export class AppointmentRepository {
         return this.repo.findOne({ where: { id } });
     }
 
+    findByIdWithDetails(id: string) {
+        return this.repo.findOne({
+            where: { id },
+        }); // Need to check if there are explicit relations to participants/reminders in entity
+    }
+
     updateStatus(id: string, status: AppointmentStatus) {
         return this.repo.update(id, { status });
+    }
+
+    async getAppointmentByWorkspaceAndUserId(workspaceId: string, userId: string, page: number, limit: number) {
+        const [data, total] = await this.repo.findAndCount({
+            where: { workspaceId, createdBy: userId },
+            skip: (page - 1) * limit,
+            take: limit,
+            order: { startTime: 'DESC' }
+        });
+
+        return { data, total };
+    }
+
+    remove(id: string) {
+        return this.repo.delete(id);
     }
 }

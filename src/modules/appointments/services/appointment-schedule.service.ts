@@ -57,4 +57,13 @@ export class AppointmentScheduleService {
             );
         }
     }
+
+    async cancelAll(appointmentId: string): Promise<void> {
+        const jobs = await this.queue.getDelayed();
+        const appointmentJobs = jobs.filter(
+            (job) => job.data && job.data.appointmentId === appointmentId,
+        );
+
+        await Promise.all(appointmentJobs.map((job) => job.remove()));
+    }
 }

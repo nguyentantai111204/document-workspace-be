@@ -24,4 +24,8 @@ export class AppointmentReminderService {
             targetMode: reminderDto.targetMode,
         }]);
     }
+
+    async getRemindersByAppointmentId(appointmentId: string): Promise<AppointmentReminder[]> {
+        return this.reminderRepo.findByAppointmentId(appointmentId);
+    }
 }

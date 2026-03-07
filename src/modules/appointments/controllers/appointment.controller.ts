@@ -1,9 +1,12 @@
 import {
     Body,
     Controller,
+    Get,
+    Delete,
     Param,
     ParseUUIDPipe,
     Post,
+    Query,
     UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 
 import { AppointmentService } from '../services/appointment.service';
-import { CreateAppointmentDto } from '../dto/appointment.dto';
+import { CreateAppointmentDto, GetAppointmentsDto } from '../dto/appointment.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { WorkspaceGuard } from 'src/common/guards/workspace.guard';
 import { WorkspacePolicyGuard } from 'src/common/guards/workspace-action.guard';
@@ -41,5 +44,43 @@ export class AppointmentController {
         @Body() dto: CreateAppointmentDto,
     ) {
         return this.appointmentService.createAppointment(dto, user.id, workspaceId);
+    }
+
+    @Get()
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_READ)
+    @ApiOperation({ summary: 'Lấy danh sách cuộc hẹn trong workspace' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    getAppointmentByWorkspaceAndUserId(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Query() query: GetAppointmentsDto,
+        @CurrentUser() user,
+    ) {
+        return this.appointmentService.getAppointmentByWorkspaceAndUserId(workspaceId, user.id, query);
+    }
+
+    @Get(':id')
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_READ)
+    @ApiOperation({ summary: 'Lấy chi tiết cuộc hẹn trong workspace' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'id', description: 'ID của cuộc hẹn' })
+    getAppointmentById(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Param('id', ParseUUIDPipe) id: string,
+    ) {
+        return this.appointmentService.getAppointmentById(workspaceId, id);
+    }
+
+    @Delete(':id')
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_DELETE)
+    @ApiOperation({ summary: 'Xóa cuộc hẹn' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'id', description: 'ID của cuộc hẹn' })
+    async deleteAppointment(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user,
+    ) {
+        await this.appointmentService.deleteAppointment(workspaceId, id, user.id);
+        return { message: 'Xóa cuộc hẹn thành công' };
     }
 }

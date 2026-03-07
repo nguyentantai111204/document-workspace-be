@@ -34,4 +34,8 @@ export class AppointmentParticipantService {
 
         return this.participantRepo.createParticipants(participantsToCreate);
     }
+
+    async getParticipantsByAppointmentId(appointmentId: string): Promise<AppointmentParticipant[]> {
+        return this.participantRepo.findByAppointmentId(appointmentId);
+    }
 }

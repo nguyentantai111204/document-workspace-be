@@ -1,4 +1,5 @@
 import { IsDate, IsNotEmpty, IsOptional, IsString, IsUUID, ArrayNotEmpty, IsArray, ValidateNested, IsEnum } from 'class-validator';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Type } from 'class-transformer';
 import { AppointmentReminderTargetMode, MinutesBefore } from '../enums/appointment-remider.enum';
 
@@ -24,6 +25,10 @@ export class CreateAppointmentDto {
     @IsString()
     description?: string;
 
+    @IsOptional()
+    @IsString()
+    url?: string;
+
     @IsDate()
     @Type(() => Date)
     startTime: Date;
@@ -42,4 +47,16 @@ export class CreateAppointmentDto {
     @ValidateNested()
     @Type(() => CreateAppointmentReminderDto)
     reminder?: CreateAppointmentReminderDto;
+}
+
+export class GetAppointmentsDto extends PaginationDto {
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    startDate?: Date;
+
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    endDate?: Date;
 }
