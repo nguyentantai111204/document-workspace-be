@@ -11,23 +11,20 @@ export class AppointmentReminderRepository {
         private readonly repo: Repository<AppointmentReminder>,
     ) { }
 
-    async createReminders(data: CreateAppointmentReminder[]): Promise<AppointmentReminder[]> {
-        const reminders = this.repo.create(
+    createReminders(data: CreateAppointmentReminder[]) {
+        return this.repo.save(this.repo.create(
             data.map((d) => ({
-                appointmentId: d.appointmentId,
-                minutesBefore: d.minutesBefore,
-                targetMode: d.targetMode,
+                ...d,
                 reminderTime: this.calcReminderTime(d.startTime, d.minutesBefore),
             })),
-        );
-        return this.repo.save(reminders);
+        ));
     }
 
-    async findByAppointmentId(appointmentId: string): Promise<AppointmentReminder[]> {
+    findByAppointmentId(appointmentId: string) {
         return this.repo.find({ where: { appointmentId } });
     }
 
-    async findById(id: string): Promise<AppointmentReminder | null> {
+    findById(id: string) {
         return this.repo.findOne({ where: { id } });
     }
 

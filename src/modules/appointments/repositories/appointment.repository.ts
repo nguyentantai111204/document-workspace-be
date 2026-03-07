@@ -12,25 +12,19 @@ export class AppointmentRepository {
         private readonly repo: Repository<Appointment>,
     ) { }
 
-    async createAppointment(data: CreateAppointment): Promise<Appointment> {
-        const appointment = this.repo.create({
-            workspaceId: data.workspaceId,
-            title: data.title,
-            description: data.description,
-            startTime: data.startTime,
-            endTime: data.endTime,
+    createAppointment(data: CreateAppointment) {
+        return this.repo.save(this.repo.create({
+            ...data,
             status: AppointmentStatus.SCHEDULED,
-            createdBy: data.createdBy,
             updatedBy: data.createdBy,
-        });
-        return this.repo.save(appointment);
+        }));
     }
 
-    async findById(id: string): Promise<Appointment | null> {
+    findById(id: string) {
         return this.repo.findOne({ where: { id } });
     }
 
-    async updateStatus(id: string, status: AppointmentStatus): Promise<void> {
-        await this.repo.update(id, { status });
+    updateStatus(id: string, status: AppointmentStatus) {
+        return this.repo.update(id, { status });
     }
 }
