@@ -6,14 +6,7 @@ import { AppointmentParticipant } from '../entities/appointment-participant.enti
 import { AppointmentParticipantRole } from '../enums/appointment-participant.enum';
 import { AppointmentReminder } from '../entities/appointment-reminder.entity';
 import { AppointmentParticipantRepository } from '../repositories/appointment-participant.repository';
-
-export enum AppointmentNotificationEvent {
-    REMIND = 'remind',
-    START = 'start',
-    END = 'end',
-}
-
-type NotificationPayload = { title: string; body: string };
+import { AppointmentNotificationEvent } from '../enums/appointment-remider.enum';
 
 @Injectable()
 export class AppointmentNotificationService {
@@ -76,7 +69,7 @@ export class AppointmentNotificationService {
         appointment: Appointment,
         event: AppointmentNotificationEvent,
         reminder?: AppointmentReminder,
-    ): NotificationPayload {
+    ) {
         switch (event) {
             case AppointmentNotificationEvent.REMIND:
                 return {

@@ -4,8 +4,9 @@ import type { Job } from 'bull';
 import { APPOINTMENT_QUEUE, AppointmentJob } from '../constant/appointment.constant';
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { AppointmentReminderRepository } from '../repositories/appointment-reminder.repository';
-import { AppointmentNotificationService, AppointmentNotificationEvent } from '../services/appointment-notification.service';
+import { AppointmentNotificationService } from '../services/appointment-notification.service';
 import { AppointmentStatus } from '../enums/appointment.enum';
+import { AppointmentNotificationEvent } from '../enums/appointment-remider.enum';
 
 interface AppointmentJobData {
     appointmentId: string;

@@ -3,6 +3,13 @@ export enum AppointmentReminderTargetMode {
     SELECTED_PARTICIPANTS = 'selected_participants',
 }
 
+
+export enum AppointmentNotificationEvent {
+    REMIND = 'remind',
+    START = 'start',
+    END = 'end',
+}
+
 export enum MinutesBefore {
     MINUTES_5 = 5,
     MINUTES_10 = 10,
