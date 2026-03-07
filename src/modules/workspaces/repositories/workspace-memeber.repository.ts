@@ -47,7 +47,7 @@ export class WorkspaceMemberRepository {
 
         const qb = this.repo
             .createQueryBuilder('member')
-            .innerJoin('member.user', 'user')
+            .innerJoin('users', 'user', 'user.id = member.user_id')
             .where('member.workspaceId = :workspaceId', { workspaceId })
             .andWhere('member.status = :status', { status: 'active' })
 
@@ -57,34 +57,37 @@ export class WorkspaceMemberRepository {
 
         if (search) {
             qb.andWhere(
-                '(user.fullName ILIKE :search OR user.email ILIKE :search)',
+                '(user.full_name ILIKE :search OR user.email ILIKE :search)',
                 { search: `%${search}%` },
             )
         }
 
         qb
-            .orderBy('member.joinedAt', 'DESC')
+            .orderBy('member.joined_at', 'DESC')
             .skip(skip)
             .take(limit)
             .select([
-                'member.id',
-                'member.role',
-                'member.joinedAt',
-                'user.id',
-                'user.fullName',
-                'user.email',
-                'user.avatarUrl',
+                'member.id as "memberId"',
+                'member.role as "memberRole"',
+                'member.joined_at as "joinedAt"',
+                'user.id as "userId"',
+                'user.full_name as "fullName"',
+                'user.email as "email"',
+                'user.avatar_url as "avatarUrl"',
             ])
 
-        const [items, total] = await qb.getManyAndCount()
+        const [items, total] = await Promise.all([
+            qb.getRawMany(),
+            qb.getCount(),
+        ])
 
         return {
             items: items.map((m) => ({
-                userId: m.user.id,
-                fullName: m.user.fullName,
-                email: m.user.email,
-                avatarUrl: m.user.avatarUrl,
-                role: m.role,
+                userId: m.userId,
+                fullName: m.fullName,
+                email: m.email,
+                avatarUrl: m.avatarUrl,
+                role: m.memberRole,
                 joinedAt: m.joinedAt,
             })),
             meta: buildPaginationMeta(page, limit, total),
