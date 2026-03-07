@@ -7,6 +7,14 @@ import { AppointmentParticipantRole } from '../enums/appointment-participant.enu
 import { AppointmentReminder } from '../entities/appointment-reminder.entity';
 import { AppointmentParticipantRepository } from '../repositories/appointment-participant.repository';
 
+export enum AppointmentNotificationEvent {
+    REMIND = 'remind',
+    START = 'start',
+    END = 'end',
+}
+
+type NotificationPayload = { title: string; body: string };
+
 @Injectable()
 export class AppointmentNotificationService {
     constructor(
@@ -39,27 +47,52 @@ export class AppointmentNotificationService {
         }
     }
 
-    async sendReminderNotifications(
+    async sendEventNotifications(
         appointment: Appointment,
-        reminder: AppointmentReminder,
+        event: AppointmentNotificationEvent,
+        reminder?: AppointmentReminder,
     ): Promise<void> {
         const participants = await this.participantRepo.findByAppointmentId(appointment.id);
-
         const recipients = participants.filter((p) => p.reminderEnabled);
+        const { title, body } = this.buildPayload(appointment, event, reminder);
 
         for (const participant of recipients) {
             await this.notificationService.create({
                 recipientId: participant.userId,
                 senderId: appointment.createdBy,
                 type: NotificationType.APPOINTMENT,
-                title: 'Nhắc nhở cuộc hẹn',
-                body: `Cuộc hẹn "${appointment.title}" sẽ bắt đầu sau ${reminder.minutesBefore} phút`,
+                title,
+                body,
                 data: {
                     appointmentId: appointment.id,
                     appointmentTitle: appointment.title,
-                    minutesBefore: reminder.minutesBefore,
+                    event,
                 },
             });
+        }
+    }
+
+    private buildPayload(
+        appointment: Appointment,
+        event: AppointmentNotificationEvent,
+        reminder?: AppointmentReminder,
+    ): NotificationPayload {
+        switch (event) {
+            case AppointmentNotificationEvent.REMIND:
+                return {
+                    title: 'Nhắc nhở cuộc hẹn',
+                    body: `Cuộc hẹn "${appointment.title}" sẽ bắt đầu sau ${reminder?.minutesBefore ?? '?'} phút`,
+                };
+            case AppointmentNotificationEvent.START:
+                return {
+                    title: 'Cuộc hẹn đã bắt đầu',
+                    body: `Cuộc hẹn "${appointment.title}" đã bắt đầu`,
+                };
+            case AppointmentNotificationEvent.END:
+                return {
+                    title: 'Cuộc hẹn đã kết thúc',
+                    body: `Cuộc hẹn "${appointment.title}" đã kết thúc`,
+                };
         }
     }
 }

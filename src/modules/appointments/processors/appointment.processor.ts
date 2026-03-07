@@ -4,7 +4,7 @@ import type { Job } from 'bull';
 import { APPOINTMENT_QUEUE, AppointmentJob } from '../constant/appointment.constant';
 import { AppointmentRepository } from '../repositories/appointment.repository';
 import { AppointmentReminderRepository } from '../repositories/appointment-reminder.repository';
-import { AppointmentNotificationService } from '../services/appointment-notification.service';
+import { AppointmentNotificationService, AppointmentNotificationEvent } from '../services/appointment-notification.service';
 import { AppointmentStatus } from '../enums/appointment.enum';
 
 interface AppointmentJobData {
@@ -36,7 +36,7 @@ export class AppointmentProcessor {
                 return;
             }
 
-            await this.notificationService.sendReminderNotifications(appointment, reminder);
+            await this.notificationService.sendEventNotifications(appointment, AppointmentNotificationEvent.REMIND, reminder);
             this.logger.log(`Sent reminders for appointment ${appointmentId}`);
         } catch (error) {
             this.logger.error(`Failed to process REMIND job ${job.id}:`, error);
@@ -47,8 +47,17 @@ export class AppointmentProcessor {
     async handleStart(job: Job<AppointmentJobData>): Promise<void> {
         const { appointmentId } = job.data;
         try {
-            await this.appointmentRepo.updateStatus(appointmentId, AppointmentStatus.ONGOING);
-            this.logger.log(`Appointment ${appointmentId} → ONGOING`);
+            const appointment = await this.appointmentRepo.findById(appointmentId);
+            if (!appointment) {
+                this.logger.warn(`START job skipped — appointment not found (jobId=${job.id})`);
+                return;
+            }
+
+            await Promise.all([
+                this.appointmentRepo.updateStatus(appointmentId, AppointmentStatus.ONGOING),
+                this.notificationService.sendEventNotifications(appointment, AppointmentNotificationEvent.START),
+            ]);
+            this.logger.log(`Appointment ${appointmentId} → ONGOING + notifications sent`);
         } catch (error) {
             this.logger.error(`Failed to process START job ${job.id}:`, error);
         }
@@ -58,8 +67,17 @@ export class AppointmentProcessor {
     async handleEnd(job: Job<AppointmentJobData>): Promise<void> {
         const { appointmentId } = job.data;
         try {
-            await this.appointmentRepo.updateStatus(appointmentId, AppointmentStatus.DONE);
-            this.logger.log(`Appointment ${appointmentId} → DONE`);
+            const appointment = await this.appointmentRepo.findById(appointmentId);
+            if (!appointment) {
+                this.logger.warn(`END job skipped — appointment not found (jobId=${job.id})`);
+                return;
+            }
+
+            await Promise.all([
+                this.appointmentRepo.updateStatus(appointmentId, AppointmentStatus.DONE),
+                this.notificationService.sendEventNotifications(appointment, AppointmentNotificationEvent.END),
+            ]);
+            this.logger.log(`Appointment ${appointmentId} → DONE + notifications sent`);
         } catch (error) {
             this.logger.error(`Failed to process END job ${job.id}:`, error);
         }
