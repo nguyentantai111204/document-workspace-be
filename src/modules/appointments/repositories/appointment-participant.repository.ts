@@ -24,4 +24,8 @@ export class AppointmentParticipantRepository {
         );
         return this.repo.save(participants);
     }
+
+    async findByAppointmentId(appointmentId: string): Promise<AppointmentParticipant[]> {
+        return this.repo.find({ where: { appointmentId } });
+    }
 }

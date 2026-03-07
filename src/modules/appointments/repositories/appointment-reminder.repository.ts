@@ -23,6 +23,14 @@ export class AppointmentReminderRepository {
         return this.repo.save(reminders);
     }
 
+    async findByAppointmentId(appointmentId: string): Promise<AppointmentReminder[]> {
+        return this.repo.find({ where: { appointmentId } });
+    }
+
+    async findById(id: string): Promise<AppointmentReminder | null> {
+        return this.repo.findOne({ where: { id } });
+    }
+
     private calcReminderTime(startTime: Date, minutesBefore: number): Date {
         return new Date(startTime.getTime() - minutesBefore * 60 * 1000);
     }

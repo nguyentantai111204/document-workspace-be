@@ -25,4 +25,12 @@ export class AppointmentRepository {
         });
         return this.repo.save(appointment);
     }
+
+    async findById(id: string): Promise<Appointment | null> {
+        return this.repo.findOne({ where: { id } });
+    }
+
+    async updateStatus(id: string, status: AppointmentStatus): Promise<void> {
+        await this.repo.update(id, { status });
+    }
 }
