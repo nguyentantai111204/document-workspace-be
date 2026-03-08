@@ -27,7 +27,7 @@ export class AppointmentRepository {
     findByIdWithDetails(id: string) {
         return this.repo.findOne({
             where: { id },
-        }); // Need to check if there are explicit relations to participants/reminders in entity
+        });
     }
 
     updateStatus(id: string, status: AppointmentStatus) {
@@ -38,7 +38,15 @@ export class AppointmentRepository {
         return this.repo
             .createQueryBuilder('appointment')
             .where('appointment.workspaceId = :workspaceId', { workspaceId })
-            .andWhere('appointment.createdBy = :userId', { userId })
+            .andWhere((qb) => {
+                const subQuery = qb.subQuery()
+                    .select('ap.appointment_id')
+                    .from('appointment_participants', 'ap')
+                    .where('ap.user_id = :userId')
+                    .getQuery()
+                return 'appointment.id IN ' + subQuery
+            })
+            .setParameter('userId', userId)
             .andWhere('appointment.startTime >= :startDate', { startDate })
             .andWhere('appointment.startTime <= :endDate', { endDate })
             .orderBy('appointment.startTime', 'ASC')

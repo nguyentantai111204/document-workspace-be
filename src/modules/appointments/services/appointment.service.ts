@@ -4,8 +4,9 @@ import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from '
 import { Appointment } from '../entities/appointment.entity';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AppointmentParticipantService } from './appointment-participant.service';
-import { AppointmentParticipantResponseStatus } from '../enums/appointment-participant.enum';
+import { AppointmentParticipantResponseStatus, AppointmentParticipantRole } from '../enums/appointment-participant.enum';
 import { AppointmentReminderService } from './appointment-reminder.service';
+import { AppointmentReminderTargetMode, MinutesBefore } from '../enums/appointment-remider.enum';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import { AppointmentScheduleService } from './appointment-schedule.service';
 
@@ -40,10 +41,15 @@ export class AppointmentService {
             dto.participants,
         );
 
+        const reminderPayload = dto.reminder || {
+            minutesBefore: 15,
+            targetMode: AppointmentReminderTargetMode.SELECTED_PARTICIPANTS
+        } as any;
+
         await this.reminderService.createForAppointment(
             appointment.id,
             appointment.startTime,
-            dto.reminder,
+            reminderPayload,
         );
 
         await Promise.all([

@@ -6,7 +6,7 @@ import { AppointmentParticipant } from '../entities/appointment-participant.enti
 import { AppointmentParticipantRole } from '../enums/appointment-participant.enum';
 import { AppointmentReminder } from '../entities/appointment-reminder.entity';
 import { AppointmentParticipantRepository } from '../repositories/appointment-participant.repository';
-import { AppointmentNotificationEvent } from '../enums/appointment-remider.enum';
+import { AppointmentNotificationEvent, AppointmentReminderTargetMode } from '../enums/appointment-remider.enum';
 
 @Injectable()
 export class AppointmentNotificationService {
@@ -32,8 +32,9 @@ export class AppointmentNotificationService {
                 title: 'Lời mời tham gia cuộc hẹn',
                 body: `Bạn đã được mời tham gia cuộc hẹn "${appointment.title}"`,
                 data: {
+                    workspaceId: appointment.workspaceId,
                     appointmentId: appointment.id,
-                    appointmentTitle: appointment.title, 
+                    appointmentTitle: appointment.title,
                     inviterId: creatorId,
                 },
             });
@@ -46,7 +47,13 @@ export class AppointmentNotificationService {
         reminder?: AppointmentReminder,
     ): Promise<void> {
         const participants = await this.participantRepo.findByAppointmentId(appointment.id);
-        const recipients = participants.filter((p) => p.reminderEnabled);
+
+        // Filter based on targetMode. If reminder is undefined (e.g. START/END events) or targetMode is SELECTED, filter by reminderEnabled.
+        let recipients = participants;
+        if (!reminder || reminder.targetMode === AppointmentReminderTargetMode.SELECTED_PARTICIPANTS) {
+            recipients = participants.filter((p) => p.reminderEnabled);
+        }
+
         const { title, body } = this.buildPayload(appointment, event, reminder);
 
         for (const participant of recipients) {
@@ -57,9 +64,11 @@ export class AppointmentNotificationService {
                 title,
                 body,
                 data: {
+                    workspaceId: appointment.workspaceId,
                     appointmentId: appointment.id,
                     appointmentTitle: appointment.title,
                     event,
+                    minutesBefore: reminder?.minutesBefore,
                 },
             });
         }

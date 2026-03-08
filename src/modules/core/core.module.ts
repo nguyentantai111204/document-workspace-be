@@ -18,6 +18,8 @@ import { FirebaseModule } from "src/common/modules/firebase/firebase.module";
 import { ChatModule } from "../chat/chat.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { AppointmentModule } from "../appointments/appointment.module";
+import { BullModule } from "@nestjs/bull";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -26,6 +28,18 @@ import { AppointmentModule } from "../appointments/appointment.module";
     KeyTokenModule, PermissionModule, SeedModule, WorkspaceModule, FileModule,
     RedisModule, NotificationModule, SocketModule, FirebaseModule, ChatModule,
     AppointmentModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('redis.host'),
+          port: configService.get('redis.port'),
+          password: configService.get('redis.password'),
+          db: configService.get('redis.db'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   providers: [
     {
