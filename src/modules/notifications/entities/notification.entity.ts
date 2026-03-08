@@ -11,8 +11,7 @@ export class Notification extends BaseEntity {
     senderId: string
 
     @Column({
-        type: 'enum',
-        enum: NotificationType,
+        type: 'varchar',
         default: NotificationType.SYSTEM
     })
     type: NotificationType

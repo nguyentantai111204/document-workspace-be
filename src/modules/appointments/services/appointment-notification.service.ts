@@ -33,7 +33,7 @@ export class AppointmentNotificationService {
                 body: `Bạn đã được mời tham gia cuộc hẹn "${appointment.title}"`,
                 data: {
                     appointmentId: appointment.id,
-                    appointmentTitle: appointment.title,
+                    appointmentTitle: appointment.title, 
                     inviterId: creatorId,
                 },
             });
