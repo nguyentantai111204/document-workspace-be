@@ -38,4 +38,8 @@ export class AppointmentParticipantService {
     async getParticipantsByAppointmentId(appointmentId: string): Promise<AppointmentParticipant[]> {
         return this.participantRepo.findByAppointmentId(appointmentId);
     }
+
+    async deleteByAppointmentId(appointmentId: string): Promise<void> {
+        await this.participantRepo.deleteByAppointmentId(appointmentId);
+    }
 }

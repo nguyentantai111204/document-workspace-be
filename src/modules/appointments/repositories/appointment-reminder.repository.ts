@@ -28,6 +28,10 @@ export class AppointmentReminderRepository {
         return this.repo.findOne({ where: { id } });
     }
 
+    deleteByAppointmentId(appointmentId: string) {
+        return this.repo.delete({ appointmentId });
+    }
+
     private calcReminderTime(startTime: Date, minutesBefore: number): Date {
         return new Date(startTime.getTime() - minutesBefore * 60 * 1000);
     }

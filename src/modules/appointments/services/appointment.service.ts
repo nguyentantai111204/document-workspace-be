@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppointmentRepository } from '../repositories/appointment.repository';
-import { CreateAppointmentDto, GetAppointmentsDto } from '../dto/appointment.dto';
+import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from '../dto/appointment.dto';
 import { Appointment } from '../entities/appointment.entity';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AppointmentParticipantService } from './appointment-participant.service';
 import { AppointmentReminderService } from './appointment-reminder.service';
 import { AppointmentNotificationService } from './appointment-notification.service';
@@ -93,6 +93,61 @@ export class AppointmentService {
         };
     }
 
+    async updateAppointment(
+        workspaceId: string,
+        id: string,
+        userId: string,
+        dto: UpdateAppointmentDto
+    ) {
+        const appointment = await this.appointmentRepo.findById(id);
+
+        if (!appointment || appointment.workspaceId !== workspaceId) {
+            throw new NotFoundException('Không tìm thấy cuộc hẹn');
+        }
+
+        if (appointment.createdBy !== userId) {
+            throw new ForbiddenException('Chỉ người tạo mới có quyền thao tác trên cuộc hẹn này');
+        }
+
+        const updateData: any = {};
+        if (dto.title !== undefined) updateData.title = dto.title;
+        if (dto.description !== undefined) updateData.description = dto.description;
+        if (dto.startTime !== undefined) updateData.startTime = dto.startTime;
+        if (dto.endTime !== undefined) updateData.endTime = dto.endTime;
+        if (dto.url !== undefined) updateData.url = dto.url;
+
+        if (Object.keys(updateData).length > 0) {
+            await this.appointmentRepo.update(id, updateData);
+        }
+
+        const updatedAppointment = await this.appointmentRepo.findById(id);
+
+        if (dto.participants) {
+            await this.participantService.deleteByAppointmentId(id);
+            await this.participantService.createForAppointment(
+                id,
+                appointment.createdBy,
+                dto.participants
+            );
+        }
+
+        if ('reminder' in dto) {
+            await this.reminderService.deleteByAppointmentId(id);
+            if (dto.reminder) {
+                await this.reminderService.createForAppointment(
+                    id,
+                    updatedAppointment!.startTime,
+                    dto.reminder
+                );
+            }
+        }
+
+        await this.scheduleService.cancelAll(id);
+        await this.scheduleService.scheduleAll(updatedAppointment!);
+
+        return this.getAppointmentById(workspaceId, id);
+    }
+
     async deleteAppointment(workspaceId: string, id: string, userId: string): Promise<void> {
         const appointment = await this.appointmentRepo.findById(id);
 
@@ -100,16 +155,12 @@ export class AppointmentService {
             throw new NotFoundException('Không tìm thấy cuộc hẹn');
         }
 
-        // Tùy theo logic nghiệp vụ, có thể chỉ cho allow host/creator xóa, hoặc admin
-        // if (appointment.createdBy !== userId) {
-        //     throw new ForbiddenException('Bạn không có quyền xóa cuộc hẹn này');
-        // }
+        if (appointment.createdBy !== userId) {
+            throw new ForbiddenException('Chỉ người tạo mới có quyền thao tác trên cuộc hẹn này');
+        }
 
         await this.scheduleService.cancelAll(id);
 
         await this.appointmentRepo.remove(id);
-
-        // Optional: Send cancellation notification
-        // await this.notificationService.notifyParticipantsOnCancel(appointment, ...)
     }
 }

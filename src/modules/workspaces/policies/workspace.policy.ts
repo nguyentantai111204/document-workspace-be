@@ -22,22 +22,19 @@ export const WorkspacePolicy: Record<WorkspaceRole, WorkspaceAction[]> = {
     ADMIN: [
         WorkspaceAction.INVITE_MEMBER,
         WorkspaceAction.UPDATE_MEMBER_ROLE,
+        WorkspaceAction.UPDATE_WORKSPACE,
         WorkspaceAction.UPLOAD_FILE,
         WorkspaceAction.READ_FILE,
-        WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
         WorkspaceAction.APPOINTMENT_CREATE,
         WorkspaceAction.APPOINTMENT_READ,
         WorkspaceAction.APPOINTMENT_UPDATE,
-        WorkspaceAction.APPOINTMENT_DELETE,
     ],
 
     MEMBER: [
         WorkspaceAction.UPLOAD_FILE,
         WorkspaceAction.READ_FILE,
-        WorkspaceAction.DELETE_FILE,
         WorkspaceAction.CHAT,
-        WorkspaceAction.APPOINTMENT_CREATE,
         WorkspaceAction.APPOINTMENT_READ,
     ],
 

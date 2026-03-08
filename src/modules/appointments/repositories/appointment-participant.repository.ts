@@ -25,4 +25,8 @@ export class AppointmentParticipantRepository {
     findByAppointmentId(appointmentId: string) {
         return this.repo.find({ where: { appointmentId } });
     }
+
+    deleteByAppointmentId(appointmentId: string) {
+        return this.repo.delete({ appointmentId });
+    }
 }

@@ -45,6 +45,10 @@ export class AppointmentRepository {
             .getMany();
     }
 
+    update(id: string, data: Partial<Appointment>) {
+        return this.repo.update(id, data);
+    }
+
     remove(id: string) {
         return this.repo.delete(id);
     }

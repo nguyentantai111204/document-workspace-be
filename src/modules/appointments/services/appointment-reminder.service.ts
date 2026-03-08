@@ -28,4 +28,8 @@ export class AppointmentReminderService {
     async getRemindersByAppointmentId(appointmentId: string): Promise<AppointmentReminder[]> {
         return this.reminderRepo.findByAppointmentId(appointmentId);
     }
+
+    async deleteByAppointmentId(appointmentId: string): Promise<void> {
+        await this.reminderRepo.deleteByAppointmentId(appointmentId);
+    }
 }

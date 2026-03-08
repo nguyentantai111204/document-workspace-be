@@ -6,6 +6,7 @@ import {
     Param,
     ParseUUIDPipe,
     Post,
+    Patch,
     Query,
     UseGuards,
 } from '@nestjs/common';
@@ -19,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 
 import { AppointmentService } from '../services/appointment.service';
-import { CreateAppointmentDto, GetAppointmentsDto } from '../dto/appointment.dto';
+import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from '../dto/appointment.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { WorkspaceGuard } from 'src/common/guards/workspace.guard';
 import { WorkspacePolicyGuard } from 'src/common/guards/workspace-action.guard';
@@ -68,6 +69,21 @@ export class AppointmentController {
         @Param('id', ParseUUIDPipe) id: string,
     ) {
         return this.appointmentService.getAppointmentById(workspaceId, id);
+    }
+
+    @Patch(':id')
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_UPDATE)
+    @ApiOperation({ summary: 'Cập nhật cuộc hẹn' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'id', description: 'ID của cuộc hẹn' })
+    @ApiBody({ type: UpdateAppointmentDto })
+    async updateAppointment(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user,
+        @Body() dto: UpdateAppointmentDto,
+    ) {
+        return this.appointmentService.updateAppointment(workspaceId, id, user.id, dto);
     }
 
     @Delete(':id')

@@ -1,6 +1,7 @@
 import { IsDate, IsNotEmpty, IsOptional, IsString, IsUUID, ArrayNotEmpty, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AppointmentReminderTargetMode, MinutesBefore } from '../enums/appointment-remider.enum';
+import { PartialType } from '@nestjs/swagger';
 
 export class CreateAppointmentParticipantDto {
     @IsUUID()
@@ -59,3 +60,5 @@ export class GetAppointmentsDto {
     @Type(() => Date)
     endDate: Date;
 }
+
+export class UpdateAppointmentDto extends PartialType(CreateAppointmentDto) { }
