@@ -4,6 +4,7 @@ import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from '
 import { Appointment } from '../entities/appointment.entity';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AppointmentParticipantService } from './appointment-participant.service';
+import { AppointmentParticipantResponseStatus } from '../enums/appointment-participant.enum';
 import { AppointmentReminderService } from './appointment-reminder.service';
 import { AppointmentNotificationService } from './appointment-notification.service';
 import { AppointmentScheduleService } from './appointment-schedule.service';
@@ -162,5 +163,23 @@ export class AppointmentService {
         await this.scheduleService.cancelAll(id);
 
         await this.appointmentRepo.remove(id);
+    }
+
+    async acceptAppointment(workspaceId: string, id: string, userId: string) {
+        const appointment = await this.appointmentRepo.findById(id);
+        if (!appointment || appointment.workspaceId !== workspaceId) {
+            throw new NotFoundException('Không tìm thấy cuộc hẹn');
+        }
+        await this.participantService.updateResponseStatus(id, userId, AppointmentParticipantResponseStatus.ACCEPTED);
+        return { message: 'Đã chấp nhận lời mời tham gia cuộc hẹn' };
+    }
+
+    async rejectAppointment(workspaceId: string, id: string, userId: string) {
+        const appointment = await this.appointmentRepo.findById(id);
+        if (!appointment || appointment.workspaceId !== workspaceId) {
+            throw new NotFoundException('Không tìm thấy cuộc hẹn');
+        }
+        await this.participantService.updateResponseStatus(id, userId, AppointmentParticipantResponseStatus.REJECTED);
+        return { message: 'Đã từ chối lời mời tham gia cuộc hẹn' };
     }
 }

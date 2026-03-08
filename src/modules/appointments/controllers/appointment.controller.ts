@@ -99,4 +99,30 @@ export class AppointmentController {
         await this.appointmentService.deleteAppointment(workspaceId, id, user.id);
         return { message: 'Xóa cuộc hẹn thành công' };
     }
+
+    @Post(':id/accept')
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_READ)
+    @ApiOperation({ summary: 'Chấp nhận lời mời tham gia cuộc hẹn' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'id', description: 'ID của cuộc hẹn' })
+    async acceptAppointment(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user,
+    ) {
+        return this.appointmentService.acceptAppointment(workspaceId, id, user.id);
+    }
+
+    @Post(':id/reject')
+    @WorkspaceActionPermission(WorkspaceAction.APPOINTMENT_READ)
+    @ApiOperation({ summary: 'Từ chối lời mời tham gia cuộc hẹn' })
+    @ApiParam({ name: 'workspaceId', description: 'ID của workspace' })
+    @ApiParam({ name: 'id', description: 'ID của cuộc hẹn' })
+    async rejectAppointment(
+        @Param('workspaceId', ParseUUIDPipe) workspaceId: string,
+        @Param('id', ParseUUIDPipe) id: string,
+        @CurrentUser() user,
+    ) {
+        return this.appointmentService.rejectAppointment(workspaceId, id, user.id);
+    }
 }
