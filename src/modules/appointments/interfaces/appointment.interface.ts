@@ -7,3 +7,10 @@ export interface CreateAppointment {
     endTime: Date;
     createdBy: string;
 }
+
+export interface AppointmentJobData {
+    appointmentId: string;
+    reminderId?: string;
+    skipNotification?: boolean;
+}
+

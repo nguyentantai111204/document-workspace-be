@@ -41,21 +41,17 @@ export class AppointmentScheduleService {
         const startDelay = appointment.startTime.getTime() - Date.now();
         const endDelay = appointment.endTime.getTime() - Date.now();
 
-        if (startDelay > 0) {
-            await this.queue.add(
-                AppointmentJob.START,
-                { appointmentId: appointment.id },
-                { delay: startDelay },
-            );
-        }
+        await this.queue.add(
+            AppointmentJob.START,
+            { appointmentId: appointment.id, skipNotification: startDelay < 0 },
+            { delay: Math.max(0, startDelay) },
+        );
 
-        if (endDelay > 0) {
-            await this.queue.add(
-                AppointmentJob.END,
-                { appointmentId: appointment.id },
-                { delay: endDelay },
-            );
-        }
+        await this.queue.add(
+            AppointmentJob.END,
+            { appointmentId: appointment.id, skipNotification: endDelay < 0 },
+            { delay: Math.max(0, endDelay) },
+        );
     }
 
     async cancelAll(appointmentId: string): Promise<void> {
